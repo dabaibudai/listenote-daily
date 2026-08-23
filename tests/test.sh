@@ -47,8 +47,8 @@ touch "$fake_home/Library/Application Support/WhisperDaily/config/manual.overrid
 desired=$(HOME="$fake_home" WHISPER_DAILY_DRY_RUN=1 /bin/zsh "$controller")
 [ "$desired" = "1" ]
 
-if rg -n '/Users/liuhao|Documents/[Cc]odex/2026' "$repo_root" \
-  --glob '!README.md' --glob '!tests/test.sh'; then
+if rg -n '/Users/liuhao|Documents/[Cc]odex/2026' \
+  --glob '!README.md' --glob '!tests/test.sh' "$repo_root"; then
   echo "Private absolute path found." >&2
   exit 1
 fi
