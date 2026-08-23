@@ -137,7 +137,7 @@ whisper-daily status
 2. 清晰说满 20–30 秒，随后等待一个处理周期。
 3. 查看 `~/WhisperDaily Records/logs/` 中当天的 runtime 日志。
 
-如果状态栏未出现，可直接打开：
+如果状态栏未出现，或者点击了 `Hide Status`，可运行下面的命令重新显示：
 
 ```bash
 open "$HOME/Applications/WhisperDaily.app"
