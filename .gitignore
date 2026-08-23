@@ -1,0 +1,7 @@
+.DS_Store
+*.part
+*.invalid-*
+models/
+records/
+*.pid
+*.log

@@ -1,0 +1,24 @@
+#!/bin/zsh
+set -eu
+root_dir="$HOME/Library/Application Support/WhisperDaily"
+command="${1:-status}"
+shift 2>/dev/null || true
+
+case "$command" in
+  start|stop|status|doctor)
+    exec /bin/zsh "$root_dir/scripts/$command.sh" "$@"
+    ;;
+  search)
+    exec /bin/zsh "$root_dir/scripts/search.sh" "$@"
+    ;;
+  config)
+    exec /usr/bin/open -a TextEdit "$root_dir/config/schedule.conf"
+    ;;
+  notes)
+    exec /usr/bin/open "$root_dir/records/transcripts"
+    ;;
+  *)
+    echo "Usage: whisper-daily {start|stop|status|doctor|search|config|notes}" >&2
+    exit 2
+    ;;
+esac
