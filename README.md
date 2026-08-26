@@ -1,4 +1,4 @@
-# Whisper Daily
+# Listenote Daily
 
 macOS 本地中文持续转录工具。它在指定时间自动工作，把识别结果按日期写入 Markdown；音频片段只在处理时临时存在，成功后立即删除。
 
@@ -16,7 +16,7 @@ macOS 本地中文持续转录工具。它在指定时间自动工作，把识�
 在新 Mac 的“终端”里运行：
 
 ```bash
-/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/dabaibudai/whisper-daily/main/scripts/bootstrap.sh)"
+/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/dabaibudai/listenote-daily/main/scripts/bootstrap.sh)"
 ```
 
 安装器会：
@@ -33,19 +33,19 @@ macOS 本地中文持续转录工具。它在指定时间自动工作，把识�
 安装结束后运行：
 
 ```bash
-whisper-daily start
+listenote-daily start
 ```
 
 macOS 询问麦克风权限时选择“允许”。清晰说一段 20–30 秒中文，等待约半分钟，再运行：
 
 ```bash
-whisper-daily notes
+listenote-daily notes
 ```
 
 测试完成后执行：
 
 ```bash
-whisper-daily stop
+listenote-daily stop
 ```
 
 `start` 是手动覆盖，会持续运行，直到执行 `stop`；正常日常使用由时间表自动控制。
@@ -65,7 +65,7 @@ LANGUAGE=zh
 打开配置：
 
 ```bash
-whisper-daily config
+listenote-daily config
 ```
 
 - `ENABLED=0`：关闭自动时间表，仅允许手动启动。
@@ -77,13 +77,13 @@ whisper-daily config
 ## 常用命令
 
 ```bash
-whisper-daily start                     # 立即开始，手动覆盖时间表
-whisper-daily stop                      # 暂停到下一个自动时段
-whisper-daily status                    # 查看进程和时间表
-whisper-daily notes                     # 打开记录目录
-whisper-daily config                    # 编辑时间表
-whisper-daily search "关键词" 2026-08-23 # 按日期搜索
-whisper-daily doctor                    # 检查依赖、模型和进程
+listenote-daily start                     # 立即开始，手动覆盖时间表
+listenote-daily stop                      # 暂停到下一个自动时段
+listenote-daily status                    # 查看进程和时间表
+listenote-daily notes                     # 打开记录目录
+listenote-daily config                    # 编辑时间表
+listenote-daily search "关键词" 2026-08-23 # 按日期搜索
+listenote-daily doctor                    # 检查依赖、模型和进程
 ```
 
 ## 文件位置
@@ -91,7 +91,7 @@ whisper-daily doctor                    # 检查依赖、模型和进程
 实际数据保存在 macOS 允许后台访问的位置：
 
 ```text
-~/Library/Application Support/WhisperDaily/
+~/Library/Application Support/Listenote Daily/
 ├── config/schedule.conf
 ├── models/
 └── records/
@@ -102,7 +102,7 @@ whisper-daily doctor                    # 检查依赖、模型和进程
 安装器还会创建方便访问的链接：
 
 ```text
-~/WhisperDaily Records
+~/Listenote Daily Records
 ```
 
 单段 Markdown 示例：
@@ -127,26 +127,26 @@ whisper-daily doctor                    # 检查依赖、模型和进程
 先运行：
 
 ```bash
-whisper-daily doctor
-whisper-daily status
+listenote-daily doctor
+listenote-daily status
 ```
 
 如果没有文字：
 
 1. 在“系统设置 → 隐私与安全性 → 麦克风”允许终端、SoX/`rec` 的权限。
 2. 清晰说满 20–30 秒，随后等待一个处理周期。
-3. 查看 `~/WhisperDaily Records/logs/` 中当天的 runtime 日志。
+3. 查看 `~/Listenote Daily Records/logs/` 中当天的 runtime 日志。
 
 如果状态栏未出现，或者点击了 `Hide Status`，可运行下面的命令重新显示：
 
 ```bash
-open "$HOME/Applications/WhisperDaily.app"
+open "$HOME/Applications/Listenote Daily.app"
 ```
 
 ## 卸载
 
 ```bash
-/bin/zsh "$HOME/Library/Application Support/WhisperDaily/scripts/uninstall.sh"
+/bin/zsh "$HOME/Library/Application Support/Listenote Daily/scripts/uninstall.sh"
 ```
 
 卸载内容会移入废纸篓，便于恢复；Homebrew 依赖不会删除，因为它们可能被其他程序共用。

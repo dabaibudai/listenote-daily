@@ -1,7 +1,7 @@
 #!/bin/zsh
 set -u
-root_dir="$HOME/Library/Application Support/WhisperDaily"
-pid_file="$root_dir/records/whisper-daily.pid"
+root_dir="$HOME/Library/Application Support/Listenote Daily"
+pid_file="$root_dir/records/listenote-daily.pid"
 config_file="$root_dir/config/schedule.conf"
 
 if [ -f "$pid_file" ]; then

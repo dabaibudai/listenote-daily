@@ -1,6 +1,6 @@
 #!/bin/zsh
 set -eu
-root_dir="$HOME/Library/Application Support/WhisperDaily"
+root_dir="$HOME/Library/Application Support/Listenote Daily"
 command="${1:-status}"
 shift 2>/dev/null || true
 
@@ -18,7 +18,7 @@ case "$command" in
     exec /usr/bin/open "$root_dir/records/transcripts"
     ;;
   *)
-    echo "Usage: whisper-daily {start|stop|status|doctor|search|config|notes}" >&2
+    echo "Usage: listenote-daily {start|stop|status|doctor|search|config|notes}" >&2
     exit 2
     ;;
 esac

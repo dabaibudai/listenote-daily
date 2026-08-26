@@ -2,21 +2,33 @@
 set -eu
 
 repo_root="${0:A:h:h}"
-runtime_root="$HOME/Library/Application Support/WhisperDaily"
-app_path="$HOME/Applications/WhisperDaily.app"
+runtime_root="$HOME/Library/Application Support/Listenote Daily"
+app_path="$HOME/Applications/Listenote Daily.app"
+legacy_runtime_root="$HOME/Library/Application Support/WhisperDaily"
+legacy_app_path="$HOME/Applications/WhisperDaily.app"
 agents_dir="$HOME/Library/LaunchAgents"
 uid=$(id -u)
-test_mode="${WHISPER_DAILY_TEST_MODE:-0}"
+test_mode="${LISTENOTE_DAILY_TEST_MODE:-0}"
 
 export PATH="/opt/homebrew/bin:/opt/homebrew/sbin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin"
 
 if [[ "$(uname -s)" != "Darwin" ]]; then
-  echo "Whisper Daily only supports macOS." >&2
+  echo "Listenote Daily only supports macOS." >&2
   exit 1
 fi
 if [ "$test_mode" != "1" ] && ! command -v brew >/dev/null 2>&1; then
   echo "Homebrew is required. Run scripts/bootstrap.sh for a zero-to-ready install." >&2
   exit 1
+fi
+
+if [ -d "$legacy_runtime_root" ] && [ ! -e "$runtime_root" ]; then
+  echo "Migrating Whisper Daily data to Listenote Daily"
+  if [ "$test_mode" != "1" ]; then
+    launchctl remove com.dabaibudai.whisper-daily.runtime 2>/dev/null || true
+    launchctl bootout "gui/$uid" "$agents_dir/com.dabaibudai.whisper-daily.scheduler.plist" 2>/dev/null || true
+    launchctl bootout "gui/$uid" "$agents_dir/com.dabaibudai.whisper-daily.status.plist" 2>/dev/null || true
+  fi
+  mv "$legacy_runtime_root" "$runtime_root"
 fi
 
 echo "[1/6] Installing command-line dependencies"
@@ -77,38 +89,56 @@ else
 fi
 
 echo "[4/6] Installing menu bar app"
-ditto "$repo_root/prebuilt/WhisperDaily.app" "$app_path"
+ditto "$repo_root/prebuilt/Listenote Daily.app" "$app_path"
 xattr -d com.apple.FinderInfo "$app_path" 2>/dev/null || true
 xattr -d 'com.apple.fileprovider.fpfs#P' "$app_path" 2>/dev/null || true
 codesign --force --sign - "$app_path" >/dev/null
 
 echo "[5/6] Installing configurable scheduler"
 sed "s|__HOME__|$HOME|g" \
-  "$repo_root/launchd/com.dabaibudai.whisper-daily.scheduler.plist.template" \
-  > "$agents_dir/com.dabaibudai.whisper-daily.scheduler.plist"
+  "$repo_root/launchd/com.dabaibudai.listenote-daily.scheduler.plist.template" \
+  > "$agents_dir/com.dabaibudai.listenote-daily.scheduler.plist"
 sed "s|__HOME__|$HOME|g" \
-  "$repo_root/launchd/com.dabaibudai.whisper-daily.status.plist.template" \
-  > "$agents_dir/com.dabaibudai.whisper-daily.status.plist"
-plutil -lint "$agents_dir/com.dabaibudai.whisper-daily.scheduler.plist" >/dev/null
-plutil -lint "$agents_dir/com.dabaibudai.whisper-daily.status.plist" >/dev/null
+  "$repo_root/launchd/com.dabaibudai.listenote-daily.status.plist.template" \
+  > "$agents_dir/com.dabaibudai.listenote-daily.status.plist"
+plutil -lint "$agents_dir/com.dabaibudai.listenote-daily.scheduler.plist" >/dev/null
+plutil -lint "$agents_dir/com.dabaibudai.listenote-daily.status.plist" >/dev/null
 
 if [ "$test_mode" != "1" ]; then
+  launchctl remove com.dabaibudai.whisper-daily.runtime 2>/dev/null || true
   launchctl bootout "gui/$uid" "$agents_dir/com.dabaibudai.whisper-daily.scheduler.plist" 2>/dev/null || true
   launchctl bootout "gui/$uid" "$agents_dir/com.dabaibudai.whisper-daily.status.plist" 2>/dev/null || true
-  launchctl bootstrap "gui/$uid" "$agents_dir/com.dabaibudai.whisper-daily.scheduler.plist"
-  launchctl bootstrap "gui/$uid" "$agents_dir/com.dabaibudai.whisper-daily.status.plist"
-  launchctl kickstart "gui/$uid/com.dabaibudai.whisper-daily.scheduler"
-  launchctl kickstart "gui/$uid/com.dabaibudai.whisper-daily.status"
+  launchctl bootout "gui/$uid" "$agents_dir/com.dabaibudai.listenote-daily.scheduler.plist" 2>/dev/null || true
+  launchctl bootout "gui/$uid" "$agents_dir/com.dabaibudai.listenote-daily.status.plist" 2>/dev/null || true
+  launchctl bootstrap "gui/$uid" "$agents_dir/com.dabaibudai.listenote-daily.scheduler.plist"
+  launchctl bootstrap "gui/$uid" "$agents_dir/com.dabaibudai.listenote-daily.status.plist"
+  launchctl kickstart "gui/$uid/com.dabaibudai.listenote-daily.scheduler"
+  launchctl kickstart "gui/$uid/com.dabaibudai.listenote-daily.status"
 fi
 
 if [ "$test_mode" != "1" ]; then
   brew_prefix=$(brew --prefix)
   if [ -w "$brew_prefix/bin" ]; then
-    ln -sf "$runtime_root/scripts/whisper-daily" "$brew_prefix/bin/whisper-daily"
+    ln -sf "$runtime_root/scripts/listenote-daily" "$brew_prefix/bin/listenote-daily"
+    ln -sf "$runtime_root/scripts/listenote-daily" "$brew_prefix/bin/whisper-daily"
   fi
 fi
-if [ ! -e "$HOME/WhisperDaily Records" ]; then
-  ln -s "$runtime_root/records" "$HOME/WhisperDaily Records"
+[ -L "$HOME/WhisperDaily Records" ] && rm -f "$HOME/WhisperDaily Records"
+if [ ! -e "$HOME/Listenote Daily Records" ]; then
+  ln -s "$runtime_root/records" "$HOME/Listenote Daily Records"
+fi
+
+if [ "$test_mode" != "1" ]; then
+  migration_backup="$runtime_root/migration-backup"
+  for legacy_target in \
+    "$legacy_app_path" \
+    "$agents_dir/com.dabaibudai.whisper-daily.scheduler.plist" \
+    "$agents_dir/com.dabaibudai.whisper-daily.status.plist"; do
+    if [ -e "$legacy_target" ]; then
+      mkdir -p "$migration_backup"
+      mv "$legacy_target" "$migration_backup/"
+    fi
+  done
 fi
 
 echo "[6/6] Verifying"
@@ -117,10 +147,10 @@ if [ "$test_mode" != "1" ]; then
 else
   test -x "$runtime_root/runtime/run.zsh"
   test -x "$runtime_root/bin/zh-simplify"
-  test -x "$app_path/Contents/MacOS/WhisperDaily"
+  test -x "$app_path/Contents/MacOS/ListenoteDaily"
   echo "      Test installation verified"
 fi
 echo ""
-echo "Installed. Schedule: 09:00-12:00 and 13:30-18:00 every day."
-echo "Run 'whisper-daily start' once to test now and grant microphone access."
-echo "Edit the schedule with 'whisper-daily config'."
+echo "Installed. Existing schedule and transcripts were preserved."
+echo "Run 'listenote-daily start' once to test now and grant microphone access."
+echo "Edit the schedule with 'listenote-daily config'."

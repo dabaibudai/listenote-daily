@@ -1,6 +1,6 @@
 #!/bin/zsh
 set -u
-root_dir="$HOME/Library/Application Support/WhisperDaily"
+root_dir="$HOME/Library/Application Support/Listenote Daily"
 failed=0
 
 check_file() {
@@ -28,7 +28,7 @@ fi
 check_file "$root_dir/models/ggml-large-v3-turbo.bin"
 check_file "$root_dir/models/ggml-silero-v5.1.2.bin"
 check_file "$root_dir/runtime/run.zsh"
-check_file "$HOME/Applications/WhisperDaily.app"
+check_file "$HOME/Applications/Listenote Daily.app"
 
 /bin/zsh "$root_dir/scripts/status.sh" 2>/dev/null || true
 exit "$failed"

@@ -1,10 +1,10 @@
 #!/bin/zsh
 set -u
 
-root_dir="$HOME/Library/Application Support/WhisperDaily"
+root_dir="$HOME/Library/Application Support/Listenote Daily"
 config_file="$root_dir/config/schedule.conf"
-label="com.dabaibudai.whisper-daily.runtime"
-pid_file="$root_dir/records/whisper-daily.pid"
+label="com.dabaibudai.listenote-daily.runtime"
+pid_file="$root_dir/records/listenote-daily.pid"
 override_file="$root_dir/config/manual.override"
 pause_file="$root_dir/config/pause.override"
 log_dir="$root_dir/records/logs"
@@ -25,7 +25,7 @@ start_job() {
     -o "$log_dir/launchd-runtime.out" \
     -e "$log_dir/launchd-runtime.err" \
     -- /usr/bin/env \
-    "WHISPER_DAILY_ROOT=$root_dir" \
+    "LISTENOTE_DAILY_ROOT=$root_dir" \
     "MODEL_SIZE=${MODEL_SIZE:-large-v3-turbo}" \
     "LANGUAGE=${LANGUAGE:-zh}" \
     /bin/zsh "$root_dir/runtime/run.zsh"
@@ -63,7 +63,7 @@ elif [ -f "$pause_file" ]; then
   fi
 fi
 
-if [ "${WHISPER_DAILY_DRY_RUN:-0}" = "1" ]; then
+if [ "${LISTENOTE_DAILY_DRY_RUN:-0}" = "1" ]; then
   echo "$should_run"
   exit 0
 fi

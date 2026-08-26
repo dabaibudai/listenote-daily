@@ -36,11 +36,11 @@
 }
 
 - (NSString *)recorderPIDPath {
-    return [self.rootPath stringByAppendingPathComponent:@"records/whisper-daily.pid"];
+    return [self.rootPath stringByAppendingPathComponent:@"records/listenote-daily.pid"];
 }
 
 - (NSString *)statusPIDPath {
-    return [self.rootPath stringByAppendingPathComponent:@"records/whisper-status.pid"];
+    return [self.rootPath stringByAppendingPathComponent:@"records/listenote-status.pid"];
 }
 
 - (NSString *)schedulePath {
@@ -59,7 +59,7 @@
 }
 
 - (void)applicationDidFinishLaunching:(NSNotification *)notification {
-    self.rootPath = [NSHomeDirectory() stringByAppendingPathComponent:@"Library/Application Support/WhisperDaily"];
+    self.rootPath = [NSHomeDirectory() stringByAppendingPathComponent:@"Library/Application Support/Listenote Daily"];
 
     pid_t existing = [self readPID:[self statusPIDPath]];
     if (existing != 0 && existing != getpid() && [self processIsAlive:existing]) {
@@ -75,7 +75,7 @@
     self.statusItem = [[NSStatusBar systemStatusBar] statusItemWithLength:NSVariableStatusItemLength];
     self.statusItem.button.font = [NSFont monospacedDigitSystemFontOfSize:12.5 weight:NSFontWeightMedium];
     self.statusItem.button.imagePosition = NSImageLeft;
-    self.statusItem.button.toolTip = @"Whisper Daily 本地转录";
+    self.statusItem.button.toolTip = @"Listenote Daily 本地转录";
 
     NSMenu *menu = [[NSMenu alloc] init];
     menu.autoenablesItems = NO;

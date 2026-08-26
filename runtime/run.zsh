@@ -3,11 +3,11 @@ set -u
 
 export PATH="/opt/homebrew/bin:/opt/homebrew/sbin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin"
 
-root_dir="${WHISPER_DAILY_ROOT:-$HOME/Library/Application Support/WhisperDaily}"
+root_dir="${LISTENOTE_DAILY_ROOT:-$HOME/Library/Application Support/Listenote Daily}"
 stream_bin="$root_dir/vendor/whisper-stream/whisper-stream"
 record_dir="$root_dir/records/transcripts"
 log_dir="$root_dir/records/logs"
-pid_file="$root_dir/records/whisper-daily.pid"
+pid_file="$root_dir/records/listenote-daily.pid"
 simplifier="$root_dir/bin/zh-simplify"
 transcript_filter="$root_dir/runtime/filter-transcript.zsh"
 model_size="${MODEL_SIZE:-large-v3-turbo}"

@@ -1,6 +1,6 @@
 #!/bin/zsh
 set -eu
-record_dir="$HOME/Library/Application Support/WhisperDaily/records/transcripts"
+record_dir="$HOME/Library/Application Support/Listenote Daily/records/transcripts"
 query="${1:-}"
 record_date="${2:-}"
 

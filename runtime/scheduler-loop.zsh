@@ -1,7 +1,7 @@
 #!/bin/zsh
 set -u
 
-root_dir="${WHISPER_DAILY_ROOT:-$HOME/Library/Application Support/WhisperDaily}"
+root_dir="${LISTENOTE_DAILY_ROOT:-$HOME/Library/Application Support/Listenote Daily}"
 controller="$root_dir/runtime/schedule-controller.zsh"
 
 while true; do
