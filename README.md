@@ -4,7 +4,7 @@ macOS 本地中文持续转录工具。它在指定时间自动工作，把识�
 
 ## 最终效果
 
-- 完全本地：使用 `whisper.cpp` 的 Medium 多语言模型，不调用云端 API。
+- 完全本地：使用 `whisper.cpp` 的 Large v3 Turbo 多语言模型，不调用云端 API。
 - 中文固定为 `zh`，保存前使用 macOS 内置能力转成简体中文。
 - 每天一个 `YYYY-MM-DD.md`，每段保留本地起止时间，Codex 可直接检索。
 - 菜单栏只显示冥想小人和计时，不出现中文或“录音”字样。
@@ -23,7 +23,7 @@ macOS 本地中文持续转录工具。它在指定时间自动工作，把识�
 
 1. 缺少 Homebrew 时自动安装 Homebrew。
 2. 安装 `sox`、`jq`、`ripgrep` 和 `whisper.cpp`。
-3. 下载 Medium 模型（约 1.4GB）及 VAD 模型，并校验 SHA-256。
+3. 下载 Large v3 Turbo 模型（约 1.5GB）及 VAD 模型，并校验 SHA-256。
 4. 安装状态栏程序、后台任务与可编辑时间表。
 
 模型不会放进 GitHub。安装通常需要几分钟，主要取决于 1.4GB 模型的下载速度。
@@ -58,7 +58,7 @@ whisper-daily stop
 ENABLED=1
 DAYS=1,2,3,4,5,6,7
 WINDOWS=09:00-12:00,13:30-18:00
-MODEL_SIZE=medium
+MODEL_SIZE=large-v3-turbo
 LANGUAGE=zh
 ```
 
@@ -112,7 +112,7 @@ whisper-daily doctor                    # 检查依赖、模型和进程
 
 这是转录后的简体中文。
 
-<!-- start: 2026-08-23T09:15:02-0700 | end: 2026-08-23T09:15:28-0700 | duration: 26.0 | model: local:ggml-medium.bin -->
+<!-- start: 2026-08-23T09:15:02-0700 | end: 2026-08-23T09:15:28-0700 | duration: 26.0 | model: local:ggml-large-v3-turbo.bin -->
 ```
 
 ## 隐私与磁盘
@@ -120,7 +120,7 @@ whisper-daily doctor                    # 检查依赖、模型和进程
 - 语音、模型和文字都留在本机。
 - 每个片段转录完成后，临时 MP3 会删除；异常断电最多可能留下当前片段。
 - Git 仓库通过 `.gitignore` 排除模型、记录、日志和 PID 文件。
-- Medium 模型约 1.4GB；长期增长的主要是 Markdown 文本，不是音频。
+- Large v3 Turbo 模型约 1.5GB；长期增长的主要是 Markdown 文本，不是音频。
 
 ## 故障排查
 

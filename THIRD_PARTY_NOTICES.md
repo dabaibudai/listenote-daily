@@ -8,5 +8,5 @@
 The installer downloads, but does not redistribute:
 
 - `whisper.cpp` through Homebrew.
-- `ggml-medium.bin` from the official `ggerganov/whisper.cpp` Hugging Face repository.
+- `ggml-large-v3-turbo.bin` from the official `ggerganov/whisper.cpp` Hugging Face repository.
 - `ggml-silero-v5.1.2.bin` from the official `ggml-org/whisper-vad` repository.

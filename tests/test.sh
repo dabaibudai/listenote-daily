@@ -11,6 +11,12 @@ done
 /bin/bash -n "$repo_root/scripts/bootstrap.sh"
 /bin/bash -n "$repo_root/vendor/whisper-stream/whisper-stream"
 
+filter="$repo_root/runtime/filter-transcript.zsh"
+[ -z "$(printf '明镜需要您的支持 欢迎订阅明镜' | /bin/zsh "$filter")" ]
+[ -z "$(printf '请不吝点赞订阅转发打赏支持明镜与点点栏目' | /bin/zsh "$filter")" ]
+[ -z "$(printf '中文字幕志愿者 杨茜茜' | /bin/zsh "$filter")" ]
+[ "$(printf '这是正常的会议内容' | /bin/zsh "$filter")" = '这是正常的会议内容' ]
+
 sed "s|__HOME__|$HOME|g" \
   "$repo_root/launchd/com.dabaibudai.whisper-daily.scheduler.plist.template" \
   > "$temp_dir/scheduler.plist"
@@ -30,13 +36,13 @@ fake_home="$temp_dir/home"
 mkdir -p "$fake_home"
 HOME="$fake_home" WHISPER_DAILY_TEST_MODE=1 /bin/zsh "$repo_root/scripts/install.sh" >/dev/null
 test -f "$fake_home/Library/Application Support/WhisperDaily/config/schedule.conf"
-test -f "$fake_home/Library/Application Support/WhisperDaily/models/ggml-medium.bin"
+test -f "$fake_home/Library/Application Support/WhisperDaily/models/ggml-large-v3-turbo.bin"
 test -x "$fake_home/Applications/WhisperDaily.app/Contents/MacOS/WhisperDaily"
 test -L "$fake_home/WhisperDaily Records"
 
 day=$(date +%u)
 config="$fake_home/Library/Application Support/WhisperDaily/config/schedule.conf"
-printf 'ENABLED=1\nDAYS=%s\nWINDOWS=00:00-23:59\nMODEL_SIZE=medium\nLANGUAGE=zh\n' "$day" > "$config"
+printf 'ENABLED=1\nDAYS=%s\nWINDOWS=00:00-23:59\nMODEL_SIZE=large-v3-turbo\nLANGUAGE=zh\n' "$day" > "$config"
 controller="$fake_home/Library/Application Support/WhisperDaily/runtime/schedule-controller.zsh"
 desired=$(HOME="$fake_home" WHISPER_DAILY_DRY_RUN=1 /bin/zsh "$controller")
 [ "$desired" = "1" ]

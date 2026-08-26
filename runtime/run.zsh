@@ -9,7 +9,8 @@ record_dir="$root_dir/records/transcripts"
 log_dir="$root_dir/records/logs"
 pid_file="$root_dir/records/whisper-daily.pid"
 simplifier="$root_dir/bin/zh-simplify"
-model_size="${MODEL_SIZE:-medium}"
+transcript_filter="$root_dir/runtime/filter-transcript.zsh"
+model_size="${MODEL_SIZE:-large-v3-turbo}"
 language="${LANGUAGE:-zh}"
 model_path="$root_dir/models/ggml-$model_size.bin"
 vad_model_path="$root_dir/models/ggml-silero-v5.1.2.bin"
@@ -55,6 +56,14 @@ while IFS= read -r line; do
   model=$(print -r -- "$line" | jq -r '.model // ""')
   text=$(print -r -- "$line" | jq -r '.text // ""')
   [ -x "$simplifier" ] && text=$(print -rn -- "$text" | "$simplifier")
+  if [ -f "$transcript_filter" ]; then
+    filtered_text=$(print -rn -- "$text" | /bin/zsh "$transcript_filter")
+    if [ -n "$text" ] && [ -z "$filtered_text" ]; then
+      print -r -- "Filtered likely Whisper hallucination at $start_local" >> "$log_dir/runtime-$(date +%Y-%m-%d).log"
+      continue
+    fi
+    text="$filtered_text"
+  fi
 
   print -r -- "## $start_time–$end_time" >> "$record_file"
   print -r -- "" >> "$record_file"

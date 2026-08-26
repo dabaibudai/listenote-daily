@@ -26,9 +26,10 @@ start_job() {
     -e "$log_dir/launchd-runtime.err" \
     -- /usr/bin/env \
     "WHISPER_DAILY_ROOT=$root_dir" \
-    "MODEL_SIZE=${MODEL_SIZE:-medium}" \
+    "MODEL_SIZE=${MODEL_SIZE:-large-v3-turbo}" \
     "LANGUAGE=${LANGUAGE:-zh}" \
     /bin/zsh "$root_dir/runtime/run.zsh"
+  launchctl start "$label"
 }
 
 stop_job() {

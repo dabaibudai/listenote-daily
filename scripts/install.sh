@@ -61,23 +61,25 @@ download_model() {
   mv "$destination.part" "$destination"
 }
 
-echo "[3/6] Downloading local models (Medium is about 1.4 GB)"
+echo "[3/6] Downloading local models (Large v3 Turbo is about 1.5 GB)"
 if [ "$test_mode" != "1" ]; then
   download_model \
-    "https://huggingface.co/ggerganov/whisper.cpp/resolve/main/ggml-medium.bin" \
-    "$runtime_root/models/ggml-medium.bin" \
-    "6c14d5adee5f86394037b4e4e8b59f1673b6cee10e3cf0b11bbdbee79c156208"
+    "https://huggingface.co/ggerganov/whisper.cpp/resolve/main/ggml-large-v3-turbo.bin" \
+    "$runtime_root/models/ggml-large-v3-turbo.bin" \
+    "1fc70f774d38eb169993ac391eea357ef47c88757ef72ee5943879b7e8e2bc69"
   download_model \
     "https://huggingface.co/ggml-org/whisper-vad/resolve/main/ggml-silero-v5.1.2.bin" \
     "$runtime_root/models/ggml-silero-v5.1.2.bin" \
     "29940d98d42b91fbd05ce489f3ecf7c72f0a42f027e4875919a28fb4c04ea2cf"
 else
-  touch "$runtime_root/models/ggml-medium.bin" "$runtime_root/models/ggml-silero-v5.1.2.bin"
+  touch "$runtime_root/models/ggml-large-v3-turbo.bin" "$runtime_root/models/ggml-silero-v5.1.2.bin"
   echo "      Test mode: created placeholders"
 fi
 
 echo "[4/6] Installing menu bar app"
 ditto "$repo_root/prebuilt/WhisperDaily.app" "$app_path"
+xattr -d com.apple.FinderInfo "$app_path" 2>/dev/null || true
+xattr -d 'com.apple.fileprovider.fpfs#P' "$app_path" 2>/dev/null || true
 codesign --force --sign - "$app_path" >/dev/null
 
 echo "[5/6] Installing configurable scheduler"

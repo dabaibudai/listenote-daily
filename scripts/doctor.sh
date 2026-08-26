@@ -25,7 +25,7 @@ else
   failed=1
 fi
 
-check_file "$root_dir/models/ggml-medium.bin"
+check_file "$root_dir/models/ggml-large-v3-turbo.bin"
 check_file "$root_dir/models/ggml-silero-v5.1.2.bin"
 check_file "$root_dir/runtime/run.zsh"
 check_file "$HOME/Applications/WhisperDaily.app"

@@ -4,15 +4,17 @@
 <dict>
   <key>Label</key>
   <string>com.dabaibudai.whisper-daily.scheduler</string>
-  <key>ProgramArguments</key>
-  <array>
-    <string>/bin/zsh</string>
-    <string>__HOME__/Library/Application Support/WhisperDaily/runtime/schedule-controller.zsh</string>
-  </array>
-  <key>RunAtLoad</key>
-  <true/>
-  <key>StartInterval</key>
-  <integer>60</integer>
+    <key>ProgramArguments</key>
+    <array>
+        <string>/bin/zsh</string>
+        <string>__HOME__/Library/Application Support/WhisperDaily/runtime/scheduler-loop.zsh</string>
+    </array>
+    <key>RunAtLoad</key>
+    <true/>
+    <key>KeepAlive</key>
+    <true/>
+    <key>ThrottleInterval</key>
+    <integer>10</integer>
   <key>StandardOutPath</key>
   <string>__HOME__/Library/Application Support/WhisperDaily/records/logs/scheduler.out</string>
   <key>StandardErrorPath</key>
