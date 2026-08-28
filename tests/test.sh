@@ -58,6 +58,11 @@ touch "$fake_home/Library/Application Support/Listenote Daily/config/manual.over
 desired=$(HOME="$fake_home" LISTENOTE_DAILY_DRY_RUN=1 /bin/zsh "$controller")
 [ "$desired" = "1" ]
 
+printf 'ENABLED=1\nDAYS=%s\nWINDOWS=09:00-12:00,13:30-18:00\nMODEL_SIZE=large-v3-turbo\nLANGUAGE=zh\n' "$day" > "$config"
+desired=$(HOME="$fake_home" LISTENOTE_DAILY_DRY_RUN=1 LISTENOTE_DAILY_DAY="$day" LISTENOTE_DAILY_NOW=12:00 /bin/zsh "$controller")
+[ "$desired" = "0" ]
+test ! -e "$fake_home/Library/Application Support/Listenote Daily/config/manual.override"
+
 if rg -n '/Users/liuhao|Documents/[Cc]odex/2026' \
   --glob '!**/README.md' --glob '!**/tests/test.sh' "$repo_root"; then
   echo "Private absolute path found." >&2

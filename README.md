@@ -48,7 +48,7 @@ listenote-daily notes
 listenote-daily stop
 ```
 
-`start` 是手动覆盖，会持续运行，直到执行 `stop`；正常日常使用由时间表自动控制。
+`start` 是手动覆盖；执行 `stop` 会立即停止。若保持运行，到达 `WINDOWS` 中任一时间段的结束时间时也会自动停止，避免手动录音整夜运行。
 
 ## 配置时间表
 

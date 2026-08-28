@@ -38,13 +38,17 @@ stop_job() {
 }
 
 scheduled_now=0
+at_window_end=0
 if [ "${ENABLED:-0}" = "1" ]; then
-  day=$(date +%u)
-  now=$(date +%H:%M)
+  day="${LISTENOTE_DAILY_DAY:-$(date +%u)}"
+  now="${LISTENOTE_DAILY_NOW:-$(date +%H:%M)}"
   if [[ ",${DAYS:-}," == *",$day,"* ]]; then
     for window in ${(s:,:)WINDOWS}; do
       start="${window%-*}"
       end="${window#*-}"
+      if [ "$now" = "$end" ]; then
+        at_window_end=1
+      fi
       if [[ ( "$now" == "$start" || "$now" > "$start" ) && "$now" < "$end" ]]; then
         scheduled_now=1
         break
@@ -55,7 +59,12 @@ fi
 
 should_run="$scheduled_now"
 if [ -f "$override_file" ]; then
-  should_run=1
+  if [ "$at_window_end" = "1" ]; then
+    rm -f "$override_file"
+    should_run=0
+  else
+    should_run=1
+  fi
 elif [ -f "$pause_file" ]; then
   should_run=0
   if [ "$scheduled_now" = "0" ]; then
