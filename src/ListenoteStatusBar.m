@@ -1,9 +1,12 @@
 #import <Cocoa/Cocoa.h>
 #import <errno.h>
 #import <signal.h>
+#import "ListenoteStatusIcon.h"
 
 @interface AppDelegate : NSObject <NSApplicationDelegate>
 @property(nonatomic, strong) NSStatusItem *statusItem;
+@property(nonatomic, strong) NSImage *recordingStatusImage;
+@property(nonatomic, strong) NSImage *pausedStatusImage;
 @property(nonatomic, strong) NSMenuItem *stateItem;
 @property(nonatomic, strong) NSMenuItem *modelItem;
 @property(nonatomic, strong) NSMenuItem *countItem;
@@ -93,7 +96,9 @@
     self.recordingItem.target = self;
     self.scheduleItem.target = self;
 
-    self.stateItem.image = [self symbol:@"figure.mind.and.body" fallback:@"person.fill"];
+    self.recordingStatusImage = ListenoteStatusIcon(YES);
+    self.pausedStatusImage = ListenoteStatusIcon(NO);
+    self.stateItem.image = self.pausedStatusImage;
     self.modelItem.image = [self symbol:@"cpu" fallback:@"gearshape"];
     self.countItem.image = [self symbol:@"note.text" fallback:@"doc.text"];
     self.latestItem.image = [self symbol:@"text.quote" fallback:@"quote.bubble"];
@@ -238,9 +243,11 @@
     NSTimeInterval elapsed = [self recordingElapsed:&running];
     NSDictionary *summary = [self transcriptSummary];
     NSStatusBarButton *button = self.statusItem.button;
+    NSImage *statusImage = running ? self.recordingStatusImage : self.pausedStatusImage;
+    button.image = statusImage;
+    self.stateItem.image = statusImage;
 
     if (running) {
-        button.image = [self symbol:@"figure.mind.and.body" fallback:@"person.fill"];
         button.contentTintColor = nil;
         button.wantsLayer = NO;
         button.title = [NSString stringWithFormat:@" %@", [self formatElapsed:elapsed]];
@@ -248,7 +255,6 @@
         self.recordingItem.state = NSControlStateValueOn;
         self.recordingItem.toolTip = @"暂停录音；到下一个日程时段会自动恢复";
     } else {
-        button.image = [self symbol:@"figure.mind.and.body" fallback:@"person"];
         button.contentTintColor = nil;
         button.wantsLayer = NO;
         button.title = @" --:--";

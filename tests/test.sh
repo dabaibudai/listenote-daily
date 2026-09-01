@@ -32,6 +32,9 @@ file "$repo_root/prebuilt/Listenote Daily.app/Contents/MacOS/ListenoteDaily" | g
 file "$repo_root/prebuilt/zh-simplify" | grep -q 'universal binary'
 codesign --verify --deep --strict "$repo_root/prebuilt/Listenote Daily.app"
 
+xcrun clang -fobjc-arc -framework Cocoa "$repo_root/tests/status-icon-test.m" -o "$temp_dir/status-icon-test"
+"$temp_dir/status-icon-test"
+
 fake_home="$temp_dir/home"
 mkdir -p "$fake_home"
 legacy_root="$fake_home/Library/Application Support/WhisperDaily"
