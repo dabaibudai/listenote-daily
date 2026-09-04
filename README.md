@@ -25,6 +25,7 @@ macOS 本地中文持续转录工具。它在指定时间自动工作，把识�
 2. 安装 `sox`、`jq`、`ripgrep` 和 `whisper.cpp`。
 3. 下载 Large v3 Turbo 模型（约 1.5GB）及 VAD 模型，并校验 SHA-256。
 4. 安装状态栏程序、后台任务与可编辑时间表。
+5. 安装独立的 `listenote-daily-review` skill；已有同名 skill 保留不覆盖。
 
 模型不会放进 GitHub。安装通常需要几分钟，主要取决于 1.4GB 模型的下载速度。
 
@@ -115,9 +116,32 @@ listenote-daily doctor                    # 检查依赖、模型和进程
 <!-- start: 2026-08-23T09:15:02-0700 | end: 2026-08-23T09:15:28-0700 | duration: 26.0 | model: local:ggml-large-v3-turbo.bin -->
 ```
 
+## 用 AI 复盘录音
+
+仓库的 `skills/listenote-daily-review` 包含完整复盘规则和 Python 3 标准库定位脚本，不依赖飞书 skill、账号或 `lark-cli`。总结由运行 skill 的 AI 完成，脚本本身只定位原始文件。
+
+完整安装会把 skill 放到 `${CODEX_HOME:-~/.codex}/skills/listenote-daily-review`。仅下载源码时，可在仓库根目录单独运行（不会启动录音或下载模型）：
+
+```bash
+/bin/zsh scripts/install-review-skill.sh
+```
+
+在 Codex 中让它“使用 $listenote-daily-review 复盘昨天的录音”即可。默认自动找到当前用户的 `~/Library/Application Support/Listenote Daily/records/transcripts`，无需手改用户名，兼容旧版 WhisperDaily。
+
+首次可验证目录：
+
+```bash
+python3 skills/listenote-daily-review/scripts/find_transcript.py --check --json
+```
+
+如果记录放在自定义位置，直接把路径告诉 AI，或使用 `--transcripts-dir` / `LISTENOTE_TRANSCRIPTS_DIR`；也识别运行时的 `LISTENOTE_DAILY_ROOT`。显式指定目录时不会回退到其他位置。
+
+摘要输出到当前工作区，先读已有摘要并保留用户修改；缺失日期明确报错，不复用其他日期。定时复盘需用户另外设置，本安装器不会创建 AI 定时任务。已有同名 skill 不自动升级，更新前应先比较和保留本地修改。
+
 ## 隐私与磁盘
 
 - 语音、模型和文字都留在本机。
+- 使用 AI 复盘时，读取的文字会进入所用 AI 的会话处理；这与完全本地的录音转写不同。仓库只分发 skill，不包含个人转录、摘要或用户配置。
 - 每个片段转录完成后，临时 MP3 会删除；异常断电最多可能留下当前片段。
 - Git 仓库通过 `.gitignore` 排除模型、记录、日志和 PID 文件。
 - Large v3 Turbo 模型约 1.5GB；长期增长的主要是 Markdown 文本，不是音频。

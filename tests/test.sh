@@ -10,6 +10,7 @@ for script in "$repo_root"/runtime/*.zsh "$repo_root"/scripts/*.sh "$repo_root"/
 done
 /bin/bash -n "$repo_root/scripts/bootstrap.sh"
 /bin/bash -n "$repo_root/vendor/whisper-stream/whisper-stream"
+python3 -B "$repo_root/tests/test_review_skill.py"
 
 filter="$repo_root/runtime/filter-transcript.zsh"
 [ -z "$(printf '明镜需要您的支持 欢迎订阅明镜' | /bin/zsh "$filter")" ]
@@ -42,6 +43,7 @@ mkdir -p "$legacy_root/records/transcripts"
 printf 'legacy transcript\n' > "$legacy_root/records/transcripts/legacy.md"
 HOME="$fake_home" LISTENOTE_DAILY_TEST_MODE=1 /bin/zsh "$repo_root/scripts/install.sh" >/dev/null
 test -f "$fake_home/Library/Application Support/Listenote Daily/config/schedule.conf"
+test -f "$fake_home/Library/Application Support/Listenote Daily/skills/listenote-daily-review/SKILL.md"
 test -f "$fake_home/Library/Application Support/Listenote Daily/models/ggml-large-v3-turbo.bin"
 test -f "$fake_home/Library/Application Support/Listenote Daily/records/transcripts/legacy.md"
 test ! -e "$legacy_root"

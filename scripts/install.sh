@@ -45,6 +45,8 @@ mkdir -p "$runtime_root/bin" "$runtime_root/config" "$runtime_root/models" \
   "$HOME/Applications" "$agents_dir"
 ditto "$repo_root/runtime" "$runtime_root/runtime"
 ditto "$repo_root/scripts" "$runtime_root/scripts"
+ditto "$repo_root/skills" "$runtime_root/skills"
+/bin/zsh "$runtime_root/scripts/install-review-skill.sh"
 ditto "$repo_root/vendor/whisper-stream" "$runtime_root/vendor/whisper-stream"
 cp "$repo_root/prebuilt/zh-simplify" "$runtime_root/bin/zh-simplify"
 if [ ! -f "$runtime_root/config/schedule.conf" ]; then

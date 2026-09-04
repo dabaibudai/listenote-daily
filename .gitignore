@@ -5,3 +5,5 @@ models/
 records/
 *.pid
 *.log
+__pycache__/
+*.pyc

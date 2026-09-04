@@ -1,0 +1,7 @@
+interface:
+  display_name: "Listenote Daily 录音复盘"
+  short_description: "自动定位本机 Markdown 转录并按议题生成独立、详细的录音复盘文档"
+  default_prompt: "Use $listenote-daily-review to review yesterday's Listenote Daily transcript and create a detailed Markdown summary."
+
+policy:
+  allow_implicit_invocation: true
