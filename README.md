@@ -1,6 +1,11 @@
 # Listenote Daily
 
-macOS 本地中文持续转录工具。它在指定时间自动工作，把识别结果按日期写入 Markdown；音频片段只在处理时临时存在，成功后立即删除。
+本地中文持续转录工具。它在指定时间自动工作，把识别结果按日期写入 Markdown；音频片段只在处理时临时存在，成功后立即删除。
+
+## 平台版本
+
+- **macOS**：当前根目录版本，已经过本机安装与录音测试。
+- **Windows**：源码、安装说明和开发状态见 [`windows/`](windows/README.md)。由 GitHub Actions 生成 Windows x64 安装包；真实 Windows 麦克风验收尚未进行。
 
 ## 最终效果
 

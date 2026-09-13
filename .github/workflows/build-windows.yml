@@ -1,0 +1,55 @@
+name: build-windows
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    tags: ["v*"]
+    paths:
+      - "windows/**"
+      - ".github/workflows/build-windows.yml"
+  pull_request:
+    paths:
+      - "windows/**"
+      - ".github/workflows/build-windows.yml"
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: windows
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: python -m unittest discover -s tests -v
+
+  build:
+    needs: test
+    runs-on: windows-latest
+    defaults:
+      run:
+        working-directory: windows
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install -r requirements-build.txt
+      - run: python -m unittest discover -s tests -v
+      - name: Build app
+        run: pyinstaller --noconfirm --clean --windowed --name ListenoteDaily --collect-all pystray --collect-all PIL main.py
+      - name: Assemble release
+        shell: pwsh
+        run: |
+          Copy-Item scripts/install.ps1 dist/ListenoteDaily/install.ps1
+          Copy-Item scripts/doctor.ps1 dist/ListenoteDaily/doctor.ps1
+          Copy-Item config.ini dist/ListenoteDaily/config.ini
+          Copy-Item README.md dist/ListenoteDaily/README.md
+          Compress-Archive -Path dist/ListenoteDaily/* -DestinationPath ListenoteDaily-Windows-x64.zip
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ListenoteDaily-Windows-x64
+          path: windows/ListenoteDaily-Windows-x64.zip

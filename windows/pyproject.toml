@@ -1,0 +1,12 @@
+[project]
+name = "listenote-win"
+version = "0.1.0"
+description = "Private, scheduled Chinese transcription for Windows"
+requires-python = ">=3.11,<3.14"
+dependencies = [
+  "Pillow>=10,<13",
+  "pystray>=0.19,<1",
+]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
