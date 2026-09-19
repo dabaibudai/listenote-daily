@@ -219,7 +219,7 @@ class TrayApp:
 
             open_settings_dialog(self.paths)
         except Exception:
-            self.service.log.debug("Settings dialog failed; falling back to editor", exc_info=True)
+            self.service.log.warning("Settings dialog failed; falling back to editor", exc_info=True)
             os.startfile(self.paths.config)
 
     def exit(self, _icon=None, _item=None) -> None:

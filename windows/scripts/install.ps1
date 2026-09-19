@@ -22,10 +22,16 @@ $WhisperDir = Join-Path $InstallDir "tools\whisper"
 $WhisperExe = Join-Path $WhisperDir "whisper-cli.exe"
 if (-not (Test-Path $WhisperExe)) {
     Write-Host "[2/5] Downloading whisper.cpp"
-    $Release = Invoke-RestMethod -Headers @{ "User-Agent" = "Listenote-Daily" } -Uri "https://api.github.com/repos/ggml-org/whisper.cpp/releases/latest"
-    $Asset = $Release.assets | Where-Object { $_.name -eq "whisper-bin-x64.zip" } | Select-Object -First 1
-    if (-not $Asset) {
-        $Asset = $Release.assets | Where-Object { $_.name -match "^whisper-(blas-)?bin-x64\.zip$" } | Select-Object -First 1
+    # Newer whisper.cpp releases may not ship Windows binaries; scan recent
+    # releases for the newest one that still provides a Windows x64 build.
+    $Asset = $null
+    $Releases = Invoke-RestMethod -Headers @{ "User-Agent" = "Listenote-Daily" } -Uri "https://api.github.com/repos/ggml-org/whisper.cpp/releases?per_page=10"
+    foreach ($Candidate in $Releases) {
+        $Asset = $Candidate.assets | Where-Object { $_.name -eq "whisper-bin-x64.zip" } | Select-Object -First 1
+        if (-not $Asset) {
+            $Asset = $Candidate.assets | Where-Object { $_.name -match "^whisper-(blas-)?bin-x64\.zip$" } | Select-Object -First 1
+        }
+        if ($Asset) { break }
     }
     if (-not $Asset) { throw "No compatible Windows x64 whisper.cpp asset was found." }
     $TempRoot = Join-Path $env:TEMP ("listenote-install-" + [guid]::NewGuid())

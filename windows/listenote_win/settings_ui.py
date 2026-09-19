@@ -33,6 +33,7 @@ _TEXT = {
         "days": "星期",
         "day_names": ["一", "二", "三", "四", "五", "六", "日"],
         "windows": "时间段（英文逗号分隔，如 09:00-12:00,13:30-18:00）",
+        "transcription": "转写",
         "chunk_seconds": "分段长度（秒，10–600）",
         "minimum_rms": "最小音量阈值（RMS）",
         "language": "转写语言（如 zh、en、ja）",
@@ -55,7 +56,7 @@ def open_settings_dialog(paths: AppPaths) -> bool:
     lang = getattr(settings, "ui_language", "en")
     t = _TEXT.get(lang, _TEXT["en"])
 
-    root = tk.Toplevel()
+    root = tk.Tk()
     root.title(t["title"])
     root.resizable(False, False)
     root.grab_set()
