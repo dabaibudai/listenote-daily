@@ -37,6 +37,7 @@ class ListenoteService:
         self._lock = threading.Lock()
         self._capturing = False
         self._transcribing = False
+        self._capture_started: datetime | None = None
         self._last_error = ""
 
     def start(self) -> None:
@@ -93,6 +94,17 @@ class ListenoteService:
                 return "Processing"
             return "Idle"
 
+    @property
+    def active_seconds(self) -> float | None:
+        with self._lock:
+            if self._capturing and self._capture_started is not None:
+                return (datetime.now() - self._capture_started).total_seconds()
+        return None
+
+    @property
+    def pending_count(self) -> int:
+        return self._queue.qsize()
+
     def _wanted(self, settings: Settings) -> bool:
         if self._manual_override is not None:
             return self._manual_override
@@ -110,16 +122,19 @@ class ListenoteService:
                     continue
                 self._chunk_stop.clear()
                 started = datetime.now()
+                self._capture_started = started
                 wav_path = self.paths.temp / f"chunk-{started:%Y%m%d-%H%M%S-%f}.wav"
                 self._set_activity(capturing=True, error="")
                 recorder.record(wav_path, settings.chunk_seconds, self._combined_stop())
                 ended = datetime.now()
+                self._capture_started = None
                 self._set_activity(capturing=False)
                 if wav_path.exists() and pcm_rms(wav_path) >= settings.minimum_rms:
                     self._enqueue(PendingChunk(wav_path, started, ended, settings))
                 else:
                     wav_path.unlink(missing_ok=True)
             except Exception as exc:
+                self._capture_started = None
                 self._set_activity(capturing=False, error=str(exc))
                 self.log.exception("Audio capture failed")
                 self._shutdown.wait(5)

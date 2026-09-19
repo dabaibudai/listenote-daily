@@ -39,6 +39,7 @@ class Settings:
     chunk_seconds: int
     minimum_rms: int
     model_relative: Path
+    ui_language: str
 
 
 def _minute(value: str) -> int:
@@ -83,6 +84,9 @@ def load_settings(path: Path) -> Settings:
         raise ValueError("chunk_seconds must be between 10 and 600")
     if minimum_rms < 0:
         raise ValueError("minimum_rms cannot be negative")
+    ui_language = parser.get("ui", "language", fallback="en").strip().lower()
+    if ui_language not in {"en", "zh"}:
+        raise ValueError("ui language must be 'en' or 'zh'")
     return Settings(
         enabled=parser.getboolean("schedule", "enabled", fallback=True),
         days=days,
@@ -91,6 +95,7 @@ def load_settings(path: Path) -> Settings:
         chunk_seconds=chunk_seconds,
         minimum_rms=minimum_rms,
         model_relative=Path(parser.get("transcription", "model", fallback=r"models\ggml-large-v3-turbo.bin")),
+        ui_language=ui_language,
     )
 
 

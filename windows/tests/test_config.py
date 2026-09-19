@@ -29,10 +29,36 @@ class ConfigTests(unittest.TestCase):
             self.assertEqual(settings.chunk_seconds, 60)
 
     def test_schedule_boundaries(self):
-        settings = Settings(True, frozenset({1}), (TimeWindow(540, 720),), "zh", 60, 220, Path("model.bin"))
+        settings = Settings(True, frozenset({1}), (TimeWindow(540, 720),), "zh", 60, 220, Path("model.bin"), "en")
         self.assertTrue(should_record(datetime(2026, 9, 14, 9, 0), settings))
         self.assertFalse(should_record(datetime(2026, 9, 14, 12, 0), settings))
         self.assertFalse(should_record(datetime(2026, 9, 15, 10, 0), settings))
+
+    def test_ui_language_default_is_en(self):
+        with tempfile.TemporaryDirectory() as directory:
+            settings = load_settings(Path(directory) / "config.ini")
+            self.assertEqual(settings.ui_language, "en")
+
+    def test_ui_language_zh(self):
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / "config.ini"
+            path.write_text(
+                "[schedule]\nenabled = true\ndays = 1\nwindows = 09:00-12:00\n"
+                "\n[ui]\nlanguage = zh\n",
+                encoding="utf-8",
+            )
+            self.assertEqual(load_settings(path).ui_language, "zh")
+
+    def test_ui_language_invalid(self):
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / "config.ini"
+            path.write_text(
+                "[schedule]\nenabled = true\ndays = 1\nwindows = 09:00-12:00\n"
+                "\n[ui]\nlanguage = fr\n",
+                encoding="utf-8",
+            )
+            with self.assertRaises(ValueError):
+                load_settings(path)
 
 
 if __name__ == "__main__":

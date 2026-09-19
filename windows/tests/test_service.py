@@ -38,7 +38,7 @@ class ServiceTests(unittest.TestCase):
             wav = paths.temp / "chunk-test.wav"
             wav.write_bytes(b"audio")
             started = datetime(2026, 9, 13, 10, 0, 0)
-            settings = Settings(True, frozenset({7}), (TimeWindow(0, 1),), "zh", 60, 0, Path("models/model.bin"))
+            settings = Settings(True, frozenset({7}), (TimeWindow(0, 1),), "zh", 60, 0, Path("models/model.bin"), "en")
             service = ListenoteService(paths)
             service._queue.put(PendingChunk(wav, started, started + timedelta(seconds=60), settings))
             service._queue.put(None)
@@ -54,7 +54,7 @@ class ServiceTests(unittest.TestCase):
             wav = paths.temp / "chunk-failed.wav"
             wav.write_bytes(b"audio")
             started = datetime(2026, 9, 13, 10, 0, 0)
-            settings = Settings(True, frozenset({7}), (TimeWindow(0, 1),), "zh", 60, 0, Path("models/model.bin"))
+            settings = Settings(True, frozenset({7}), (TimeWindow(0, 1),), "zh", 60, 0, Path("models/model.bin"), "en")
             service = ListenoteService(paths)
             service._queue.put(PendingChunk(wav, started, started + timedelta(seconds=60), settings))
             service._queue.put(None)
