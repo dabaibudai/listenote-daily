@@ -5,9 +5,20 @@
 ## 平台版本
 
 - **macOS**：当前根目录版本，已经过本机安装与录音测试。
-- **Windows**：源码、安装说明和开发状态见 [`windows/`](windows/README.md)。由 GitHub Actions 生成 Windows x64 安装包；真实 Windows 麦克风验收尚未进行。
+- **Windows**：最新为 [`v0.2.0 Preview`](https://github.com/dabaibudai/listenote-daily/releases/tag/windows-v0.2.0)，源码与完整说明见 [`windows/`](windows/README.md)。
 
-## 最终效果
+## Windows 安装
+
+1. 从 [Windows v0.2.0 Preview](https://github.com/dabaibudai/listenote-daily/releases/tag/windows-v0.2.0) 下载 `ListenoteDaily-Windows-x64.zip`。
+2. 解压后，在目录中运行：
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\install.ps1
+```
+
+安装器无需管理员权限，会下载并校验本地 Whisper 模型、创建开始菜单和开机启动快捷方式。Windows 版提供中英文托盘菜单、四种状态图标、图形设置窗口、录音时长与今日记录统计。
+
+## macOS 最终效果
 
 - 完全本地：使用 `whisper.cpp` 的 Large v3 Turbo 多语言模型，不调用云端 API。
 - 中文固定为 `zh`，保存前使用 macOS 内置能力转成简体中文。
@@ -16,7 +27,7 @@
 - 时间表由配置文件控制，不依赖 Codex、ChatGPT 或定时对话。
 - 支持 Intel 与 Apple Silicon Mac。
 
-## 一条命令安装
+## macOS 一条命令安装
 
 在新 Mac 的“终端”里运行：
 

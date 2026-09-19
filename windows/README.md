@@ -2,14 +2,16 @@
 
 Windows 本地中文持续转录工具。它按设定时间自动录音，用本地 Whisper 转成简体中文，并按日期写入 Markdown。音频只作为临时分片存在，处理完成或失败后都会删除；待处理队列最多保留 4 段，避免长期堆积。
 
-> 当前为 Windows MVP。代码和安装包可在 macOS 上开发、由 GitHub Actions 构建，但麦克风、开机启动和系统托盘仍需在真实 Windows 电脑最终验收。
+> 最新版本：[`Windows v0.2.0 Preview`](https://github.com/dabaibudai/listenote-daily/releases/tag/windows-v0.2.0)。安装包由 GitHub Actions 的 Windows Runner 构建并通过自动测试。
 
 ## 已实现
 
-- Windows 系统托盘：极简学习图标，不在状态栏显示中文或“录音”字样。
+- Windows 系统托盘只显示极简状态图标；状态文字位于悬停提示和菜单内。
+- 支持中英文托盘菜单、四种颜色状态、录音时长与今日记录统计。
+- 内置图形设置窗口，可调整时间表、分段参数和界面语言。
 - 每天多个可配置时间段；支持手动开始、停止和恢复自动计划。
 - Windows `waveIn` 原生麦克风采集，不依赖 Python 录音包。
-- 本地 `whisper.cpp` + Large v3 Turbo，固定中文 `zh`。
+- 本地 `whisper.cpp` + Large v3 Turbo，默认中文 `zh`。
 - Windows 内置简繁转换，按 `YYYY-MM-DD.md` 和准确时间段存储。
 - 录音和转录并行，避免模型处理时中断下一段采集。
 - 临时音频有上限，处理后立即删除；日志自动轮转。
@@ -37,7 +39,7 @@ Copy-Item config.ini dist\ListenoteDaily\config.ini
 
 ## 安装
 
-1. 下载并解压 `ListenoteDaily-Windows-x64.zip`。
+1. 从 [Windows v0.2.0 Preview](https://github.com/dabaibudai/listenote-daily/releases/tag/windows-v0.2.0) 下载并解压 `ListenoteDaily-Windows-x64.zip`。
 2. 右键 PowerShell，进入解压目录。
 3. 运行：
 
