@@ -11,7 +11,7 @@ for script in "$macos_root"/runtime/*.zsh "$macos_root"/scripts/*.sh "$macos_roo
 done
 /bin/bash -n "$macos_root/scripts/bootstrap.sh"
 /bin/bash -n "$project_root/scripts/bootstrap.sh"
-rg -q 'main/macos/scripts/bootstrap.sh' "$project_root/scripts/bootstrap.sh"
+grep -q 'main/macos/scripts/bootstrap.sh' "$project_root/scripts/bootstrap.sh"
 /bin/bash -n "$macos_root/vendor/whisper-stream/whisper-stream"
 python3 -B "$macos_root/tests/test_review_skill.py"
 
@@ -71,8 +71,9 @@ desired=$(HOME="$fake_home" LISTENOTE_DAILY_DRY_RUN=1 LISTENOTE_DAILY_DAY="$day"
 [ "$desired" = "0" ]
 test ! -e "$fake_home/Library/Application Support/Listenote Daily/config/manual.override"
 
-if rg -n '/Users/liuhao|Documents/[Cc]odex/2026' \
-  --glob '!**/README.md' --glob '!**/tests/test.sh' "$project_root"; then
+if grep -R -n -E '/Users/liuhao|Documents/[Cc]odex/2026' "$project_root" \
+  --exclude='README.md' --exclude='test.sh' --exclude='*.pyc' \
+  --exclude-dir='.git' --exclude-dir='__pycache__'; then
   echo "Private absolute path found." >&2
   exit 1
 fi
