@@ -1,196 +1,66 @@
 # Listenote Daily
 
-本地中文持续转录工具。它在指定时间自动工作，把识别结果按日期写入 Markdown；音频片段只在处理时临时存在，成功后立即删除。
+本地中文持续转录工具。它按时间表自动工作，用本地 Whisper 将语音写入每日 Markdown；音频只作临时分片，处理后删除。
 
-## 平台版本
+## 选择平台
 
-- **macOS**：当前根目录版本，已经过本机安装与录音测试。
-- **Windows**：最新为 [`v0.2.0 Preview`](https://github.com/dabaibudai/listenote-daily/releases/tag/windows-v0.2.0)，源码与完整说明见 [`windows/`](windows/README.md)。
+| 平台 | 状态 | 安装与说明 |
+|---|---|---|
+| macOS | 已完成本机安装与录音测试 | [`macos/README.md`](macos/README.md) |
+| Windows x64 | `v0.2.0 Preview` | [`windows/README.md`](windows/README.md) · [下载安装包](https://github.com/dabaibudai/listenote-daily/releases/tag/windows-v0.2.0) |
+| 录音复盘 Skill | Mac/Windows 共用 | [`skills/listenote-daily-review/`](skills/listenote-daily-review/) |
 
-## Windows 安装
-
-1. 从 [Windows v0.2.0 Preview](https://github.com/dabaibudai/listenote-daily/releases/tag/windows-v0.2.0) 下载 `ListenoteDaily-Windows-x64.zip`。
-2. 解压后，在目录中运行：
-
-```powershell
-powershell -ExecutionPolicy Bypass -File .\install.ps1
-```
-
-安装器无需管理员权限，会下载并校验本地 Whisper 模型、创建开始菜单和开机启动快捷方式。Windows 版提供中英文托盘菜单、四种状态图标、图形设置窗口、录音时长与今日记录统计。
-
-## macOS 最终效果
-
-- 完全本地：使用 `whisper.cpp` 的 Large v3 Turbo 多语言模型，不调用云端 API。
-- 中文固定为 `zh`，保存前使用 macOS 内置能力转成简体中文。
-- 每天一个 `YYYY-MM-DD.md`，每段保留本地起止时间，Codex 可直接检索。
-- 菜单栏只显示冥想小人和计时，不出现中文或“录音”字样。
-- 时间表由配置文件控制，不依赖 Codex、ChatGPT 或定时对话。
-- 支持 Intel 与 Apple Silicon Mac。
-
-## macOS 一条命令安装
-
-在新 Mac 的“终端”里运行：
+## macOS 一键安装
 
 ```bash
 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/dabaibudai/listenote-daily/main/scripts/bootstrap.sh)"
 ```
 
-安装器会：
+旧安装地址继续保留；它会转交给 `macos/scripts/bootstrap.sh`。
 
-1. 缺少 Homebrew 时自动安装 Homebrew。
-2. 安装 `sox`、`jq`、`ripgrep` 和 `whisper.cpp`。
-3. 下载 Large v3 Turbo 模型（约 1.5GB）及 VAD 模型，并校验 SHA-256。
-4. 安装状态栏程序、后台任务与可编辑时间表。
-5. 安装独立的 `listenote-daily-review` skill；已有同名 skill 保留不覆盖。
+## Windows 安装
 
-模型不会放进 GitHub。安装通常需要几分钟，主要取决于 1.4GB 模型的下载速度。
+1. 下载并解压 [`ListenoteDaily-Windows-x64.zip`](https://github.com/dabaibudai/listenote-daily/releases/download/windows-v0.2.0/ListenoteDaily-Windows-x64.zip)。
+2. 在解压目录运行：
 
-## 第一次测试
-
-安装结束后运行：
-
-```bash
-listenote-daily start
+```powershell
+powershell -ExecutionPolicy Bypass -File .\install.ps1
 ```
 
-macOS 询问麦克风权限时选择“允许”。清晰说一段 20–30 秒中文，等待约半分钟，再运行：
+Windows 版提供中英文托盘菜单、图形设置、四种状态图标、录音时长和今日记录统计。
 
-```bash
-listenote-daily notes
-```
-
-测试完成后执行：
-
-```bash
-listenote-daily stop
-```
-
-`start` 是手动覆盖；执行 `stop` 会立即停止。若保持运行，到达 `WINDOWS` 中任一时间段的结束时间时也会自动停止，避免手动录音整夜运行。
-
-## 配置时间表
-
-默认配置就是每天两个时段：
-
-```ini
-ENABLED=1
-DAYS=1,2,3,4,5,6,7
-WINDOWS=09:00-12:00,13:30-18:00
-MODEL_SIZE=large-v3-turbo
-LANGUAGE=zh
-```
-
-打开配置：
-
-```bash
-listenote-daily config
-```
-
-- `ENABLED=0`：关闭自动时间表，仅允许手动启动。
-- `DAYS=1,2,3,4,5`：仅周一至周五。
-- `WINDOWS`：可写一个或多个本地时间区间，用英文逗号分隔。
-
-保存后最多 60 秒生效，不需要重启，也不需要 Codex。
-
-## 常用命令
-
-```bash
-listenote-daily start                     # 立即开始，手动覆盖时间表
-listenote-daily stop                      # 暂停到下一个自动时段
-listenote-daily status                    # 查看进程和时间表
-listenote-daily notes                     # 打开记录目录
-listenote-daily config                    # 编辑时间表
-listenote-daily search "关键词" 2026-08-23 # 按日期搜索
-listenote-daily doctor                    # 检查依赖、模型和进程
-```
-
-## 文件位置
-
-实际数据保存在 macOS 允许后台访问的位置：
+## 仓库结构
 
 ```text
-~/Library/Application Support/Listenote Daily/
-├── config/schedule.conf
-├── models/
-└── records/
-    ├── transcripts/YYYY-MM-DD.md
-    └── logs/
+listenote-daily/
+├── macos/                         # Mac 应用、安装器、运行时与测试
+├── windows/                       # Windows 应用、安装器与测试
+├── skills/listenote-daily-review/ # 共用录音复盘 Skill
+├── docs/                          # 架构与开发状态
+├── scripts/bootstrap.sh           # 兼容旧 Mac 安装地址
+└── .github/workflows/             # Mac CI 与 Windows 构建
 ```
 
-安装器还会创建方便访问的链接：
+## 共同原则
 
-```text
-~/Listenote Daily Records
-```
-
-单段 Markdown 示例：
-
-```markdown
-## 09:15:02–09:15:28
-
-这是转录后的简体中文。
-
-<!-- start: 2026-08-23T09:15:02-0700 | end: 2026-08-23T09:15:28-0700 | duration: 26.0 | model: local:ggml-large-v3-turbo.bin -->
-```
+- 完全本地转录，不调用云端语音 API。
+- 默认使用 Large v3 Turbo 中文模型。
+- 每天一个 `YYYY-MM-DD.md`，每段保留本地起止时间。
+- 临时音频不会长期保存，主要磁盘占用来自模型。
+- 时间表由本机配置文件控制，不依赖 Codex 或定时对话。
 
 ## 用 AI 复盘录音
 
-仓库的 `skills/listenote-daily-review` 包含完整复盘规则和 Python 3 标准库定位脚本，不依赖飞书 skill、账号或 `lark-cli`。总结由运行 skill 的 AI 完成，脚本本身只定位原始文件。
-
-完整安装会把 skill 放到 `${CODEX_HOME:-~/.codex}/skills/listenote-daily-review`。仅下载源码时，可在仓库根目录单独运行（不会启动录音或下载模型）：
+`skills/listenote-daily-review` 可按日期或时间段检索 Markdown，生成详细录音复盘。Mac 完整安装会自动安装该 Skill；也可单独运行：
 
 ```bash
-/bin/zsh scripts/install-review-skill.sh
+/bin/zsh macos/scripts/install-review-skill.sh
 ```
 
-在 Codex 中让它“使用 $listenote-daily-review 复盘昨天的录音”即可。默认自动找到当前用户的 `~/Library/Application Support/Listenote Daily/records/transcripts`，无需手改用户名，兼容旧版 WhisperDaily。
+## 开发
 
-首次可验证目录：
+- Mac 测试：`/bin/zsh macos/tests/test.sh`
+- Windows 测试：`cd windows && python -m unittest discover -s tests -v`
+- Windows 安装包由 `.github/workflows/build-windows.yml` 构建。
 
-```bash
-python3 skills/listenote-daily-review/scripts/find_transcript.py --check --json
-```
-
-如果记录放在自定义位置，直接把路径告诉 AI，或使用 `--transcripts-dir` / `LISTENOTE_TRANSCRIPTS_DIR`；也识别运行时的 `LISTENOTE_DAILY_ROOT`。显式指定目录时不会回退到其他位置。
-
-摘要输出到当前工作区，先读已有摘要并保留用户修改；缺失日期明确报错，不复用其他日期。定时复盘需用户另外设置，本安装器不会创建 AI 定时任务。已有同名 skill 不自动升级，更新前应先比较和保留本地修改。
-
-## 隐私与磁盘
-
-- 语音、模型和文字都留在本机。
-- 使用 AI 复盘时，读取的文字会进入所用 AI 的会话处理；这与完全本地的录音转写不同。仓库只分发 skill，不包含个人转录、摘要或用户配置。
-- 每个片段转录完成后，临时 MP3 会删除；异常断电最多可能留下当前片段。
-- Git 仓库通过 `.gitignore` 排除模型、记录、日志和 PID 文件。
-- Large v3 Turbo 模型约 1.5GB；长期增长的主要是 Markdown 文本，不是音频。
-
-## 故障排查
-
-先运行：
-
-```bash
-listenote-daily doctor
-listenote-daily status
-```
-
-如果没有文字：
-
-1. 在“系统设置 → 隐私与安全性 → 麦克风”允许终端、SoX/`rec` 的权限。
-2. 清晰说满 20–30 秒，随后等待一个处理周期。
-3. 查看 `~/Listenote Daily Records/logs/` 中当天的 runtime 日志。
-
-如果状态栏未出现，或者点击了 `Hide Status`，可运行下面的命令重新显示：
-
-```bash
-open "$HOME/Applications/Listenote Daily.app"
-```
-
-## 卸载
-
-```bash
-/bin/zsh "$HOME/Library/Application Support/Listenote Daily/scripts/uninstall.sh"
-```
-
-卸载内容会移入废纸篓，便于恢复；Homebrew 依赖不会删除，因为它们可能被其他程序共用。
-
-## 开源说明
-
-本项目使用 MIT License。转录采集脚本基于 `yohasebe/whisper-stream` 3.1.2 修改，其原始 MIT License 保留在 `vendor/whisper-stream/LICENSE`。
+本项目使用 MIT License。第三方依赖说明见 [`THIRD_PARTY_NOTICES.md`](THIRD_PARTY_NOTICES.md)。

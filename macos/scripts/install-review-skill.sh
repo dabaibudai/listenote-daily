@@ -1,7 +1,11 @@
 #!/bin/zsh
 set -eu
 
-source_root="${0:A:h:h}/skills/listenote-daily-review"
+container_root="${0:A:h:h}"
+source_root="$container_root/skills/listenote-daily-review"
+if [ ! -f "$source_root/SKILL.md" ]; then
+  source_root="${container_root:h}/skills/listenote-daily-review"
+fi
 destination="${CODEX_HOME:-$HOME/.codex}/skills/listenote-daily-review"
 if [ "$#" -ne 0 ]; then
   if [ "$#" -ne 2 ] || [ "$1" != "--target" ]; then

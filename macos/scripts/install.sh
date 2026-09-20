@@ -1,7 +1,8 @@
 #!/bin/zsh
 set -eu
 
-repo_root="${0:A:h:h}"
+macos_root="${0:A:h:h}"
+project_root="${macos_root:h}"
 runtime_root="$HOME/Library/Application Support/Listenote Daily"
 app_path="$HOME/Applications/Listenote Daily.app"
 legacy_runtime_root="$HOME/Library/Application Support/WhisperDaily"
@@ -43,14 +44,14 @@ mkdir -p "$runtime_root/bin" "$runtime_root/config" "$runtime_root/models" \
   "$runtime_root/records/transcripts" "$runtime_root/records/logs" \
   "$runtime_root/runtime" "$runtime_root/scripts" "$runtime_root/vendor/whisper-stream" \
   "$HOME/Applications" "$agents_dir"
-ditto "$repo_root/runtime" "$runtime_root/runtime"
-ditto "$repo_root/scripts" "$runtime_root/scripts"
-ditto "$repo_root/skills" "$runtime_root/skills"
+ditto "$macos_root/runtime" "$runtime_root/runtime"
+ditto "$macos_root/scripts" "$runtime_root/scripts"
+ditto "$project_root/skills" "$runtime_root/skills"
 /bin/zsh "$runtime_root/scripts/install-review-skill.sh"
-ditto "$repo_root/vendor/whisper-stream" "$runtime_root/vendor/whisper-stream"
-cp "$repo_root/prebuilt/zh-simplify" "$runtime_root/bin/zh-simplify"
+ditto "$macos_root/vendor/whisper-stream" "$runtime_root/vendor/whisper-stream"
+cp "$macos_root/prebuilt/zh-simplify" "$runtime_root/bin/zh-simplify"
 if [ ! -f "$runtime_root/config/schedule.conf" ]; then
-  cp "$repo_root/config/schedule.conf" "$runtime_root/config/schedule.conf"
+  cp "$macos_root/config/schedule.conf" "$runtime_root/config/schedule.conf"
 fi
 chmod +x "$runtime_root"/runtime/*.zsh "$runtime_root"/scripts/* \
   "$runtime_root/vendor/whisper-stream/whisper-stream" "$runtime_root/bin/zh-simplify"
@@ -91,17 +92,17 @@ else
 fi
 
 echo "[4/6] Installing menu bar app"
-ditto "$repo_root/prebuilt/Listenote Daily.app" "$app_path"
+ditto "$macos_root/prebuilt/Listenote Daily.app" "$app_path"
 xattr -d com.apple.FinderInfo "$app_path" 2>/dev/null || true
 xattr -d 'com.apple.fileprovider.fpfs#P' "$app_path" 2>/dev/null || true
 codesign --force --sign - "$app_path" >/dev/null
 
 echo "[5/6] Installing configurable scheduler"
 sed "s|__HOME__|$HOME|g" \
-  "$repo_root/launchd/com.dabaibudai.listenote-daily.scheduler.plist.template" \
+  "$macos_root/launchd/com.dabaibudai.listenote-daily.scheduler.plist.template" \
   > "$agents_dir/com.dabaibudai.listenote-daily.scheduler.plist"
 sed "s|__HOME__|$HOME|g" \
-  "$repo_root/launchd/com.dabaibudai.listenote-daily.status.plist.template" \
+  "$macos_root/launchd/com.dabaibudai.listenote-daily.status.plist.template" \
   > "$agents_dir/com.dabaibudai.listenote-daily.status.plist"
 plutil -lint "$agents_dir/com.dabaibudai.listenote-daily.scheduler.plist" >/dev/null
 plutil -lint "$agents_dir/com.dabaibudai.listenote-daily.status.plist" >/dev/null

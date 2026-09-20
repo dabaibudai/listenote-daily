@@ -7,7 +7,7 @@ import unittest
 from datetime import date, timedelta
 from unittest.mock import patch
 
-REPO = Path(__file__).resolve().parents[1]
+REPO = Path(__file__).resolve().parents[2]
 SPEC = importlib.util.spec_from_file_location(
     "finder", REPO / "skills/listenote-daily-review/scripts/find_transcript.py")
 finder = importlib.util.module_from_spec(SPEC)
@@ -78,7 +78,7 @@ class ReviewSkillTests(unittest.TestCase):
 
     def test_standalone_install_preserves_edits(self):
         target = self.root / "agent skills/listenote-daily-review"
-        command = ["/bin/zsh", str(REPO / "scripts/install-review-skill.sh"), "--target", str(target)]
+        command = ["/bin/zsh", str(REPO / "macos/scripts/install-review-skill.sh"), "--target", str(target)]
         subprocess.run(command, check=True)
         self.assertTrue((target / "scripts/find_transcript.py").is_file())
         skill = target / "SKILL.md"

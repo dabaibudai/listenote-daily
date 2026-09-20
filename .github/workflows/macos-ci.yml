@@ -1,4 +1,4 @@
-name: CI
+name: macos-ci
 
 on:
   push:
@@ -10,4 +10,4 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Validate package
-        run: /bin/zsh tests/test.sh
+        run: /bin/zsh macos/tests/test.sh

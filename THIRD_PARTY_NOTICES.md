@@ -1,9 +1,9 @@
 # Third-party notices
 
-`vendor/whisper-stream/whisper-stream` is based on
+`macos/vendor/whisper-stream/whisper-stream` is based on
 [yohasebe/whisper-stream](https://github.com/yohasebe/whisper-stream), version
 3.1.2, and is redistributed under its MIT license. The original license is at
-`vendor/whisper-stream/LICENSE`.
+`macos/vendor/whisper-stream/LICENSE`.
 
 The installer downloads, but does not redistribute:
 
