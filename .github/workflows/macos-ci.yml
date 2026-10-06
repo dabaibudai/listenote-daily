@@ -9,5 +9,7 @@ jobs:
     runs-on: macos-latest
     steps:
       - uses: actions/checkout@v4
+      - name: Install test audio and JSON tools
+        run: HOMEBREW_NO_AUTO_UPDATE=1 brew install sox jq
       - name: Validate package
         run: /bin/zsh macos/tests/test.sh
