@@ -10,6 +10,23 @@ legacy_app_path="$HOME/Applications/WhisperDaily.app"
 agents_dir="$HOME/Library/LaunchAgents"
 uid=$(id -u)
 test_mode="${LISTENOTE_DAILY_TEST_MODE:-0}"
+machine_arch="${LISTENOTE_DAILY_TEST_ARCH:-$(uname -m)}"
+default_backend=whisper
+[ "$machine_arch" = "arm64" ] && default_backend=qwen
+asr_backend="$default_backend"
+if [ -f "$runtime_root/config/schedule.conf" ]; then
+  source "$runtime_root/config/schedule.conf"
+  asr_backend="${ASR_BACKEND:-whisper}"
+fi
+
+if [ "$asr_backend" = "qwen" ] && [ "$machine_arch" != "arm64" ]; then
+  echo "Qwen MLX requires Apple Silicon; set ASR_BACKEND=whisper on this Mac." >&2
+  exit 1
+fi
+if [ "$asr_backend" != "qwen" ] && [ "$asr_backend" != "whisper" ]; then
+  echo "Unsupported ASR_BACKEND: $asr_backend" >&2
+  exit 1
+fi
 
 export PATH="/opt/homebrew/bin:/opt/homebrew/sbin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin"
 
@@ -34,7 +51,11 @@ fi
 
 echo "[1/6] Installing command-line dependencies"
 if [ "$test_mode" != "1" ]; then
-  HOMEBREW_NO_AUTO_UPDATE=1 brew install jq sox whisper-cpp ripgrep
+  if [ "$asr_backend" = "qwen" ]; then
+    HOMEBREW_NO_AUTO_UPDATE=1 brew install jq sox ripgrep ffmpeg uv
+  else
+    HOMEBREW_NO_AUTO_UPDATE=1 brew install jq sox whisper-cpp ripgrep
+  fi
 else
   echo "      Test mode: skipped"
 fi
@@ -52,6 +73,9 @@ ditto "$macos_root/vendor/whisper-stream" "$runtime_root/vendor/whisper-stream"
 cp "$macos_root/prebuilt/zh-simplify" "$runtime_root/bin/zh-simplify"
 if [ ! -f "$runtime_root/config/schedule.conf" ]; then
   cp "$macos_root/config/schedule.conf" "$runtime_root/config/schedule.conf"
+  if [ "$machine_arch" != "arm64" ]; then
+    sed -i '' 's/^ASR_BACKEND=qwen$/ASR_BACKEND=whisper/' "$runtime_root/config/schedule.conf"
+  fi
 fi
 chmod +x "$runtime_root"/runtime/*.zsh "$runtime_root"/scripts/* \
   "$runtime_root/vendor/whisper-stream/whisper-stream" "$runtime_root/bin/zh-simplify"
@@ -76,19 +100,29 @@ download_model() {
   mv "$destination.part" "$destination"
 }
 
-echo "[3/6] Downloading local models (Large v3 Turbo is about 1.5 GB)"
-if [ "$test_mode" != "1" ]; then
-  download_model \
-    "https://huggingface.co/ggerganov/whisper.cpp/resolve/main/ggml-large-v3-turbo.bin" \
-    "$runtime_root/models/ggml-large-v3-turbo.bin" \
-    "1fc70f774d38eb169993ac391eea357ef47c88757ef72ee5943879b7e8e2bc69"
-  download_model \
-    "https://huggingface.co/ggml-org/whisper-vad/resolve/main/ggml-silero-v5.1.2.bin" \
-    "$runtime_root/models/ggml-silero-v5.1.2.bin" \
-    "29940d98d42b91fbd05ce489f3ecf7c72f0a42f027e4875919a28fb4c04ea2cf"
+echo "[3/6] Preparing local $asr_backend model"
+if [ "$asr_backend" = "qwen" ]; then
+  if [ "$test_mode" != "1" ]; then
+    /bin/zsh "$runtime_root/scripts/install-qwen.sh"
+  else
+    mkdir -p "$runtime_root/qwen-venv/bin" "$runtime_root/qwen-cache/hub/models--moona3k--mlx-qwen3-asr-0.6b-8bit/refs"
+    touch "$runtime_root/qwen-venv/bin/python"
+    print -r -- "83ce2a8ef9a382d2ba2209aab383bc51fff366f5" > "$runtime_root/qwen-cache/hub/models--moona3k--mlx-qwen3-asr-0.6b-8bit/refs/main"
+    echo "      Test mode: created Qwen placeholders"
+  fi
 else
-  touch "$runtime_root/models/ggml-large-v3-turbo.bin" "$runtime_root/models/ggml-silero-v5.1.2.bin"
-  echo "      Test mode: created placeholders"
+  if [ "$test_mode" != "1" ]; then
+    download_model \
+      "https://huggingface.co/ggerganov/whisper.cpp/resolve/main/ggml-large-v3-turbo.bin" \
+      "$runtime_root/models/ggml-large-v3-turbo.bin" \
+      "1fc70f774d38eb169993ac391eea357ef47c88757ef72ee5943879b7e8e2bc69"
+    download_model \
+      "https://huggingface.co/ggml-org/whisper-vad/resolve/main/ggml-silero-v5.1.2.bin" \
+      "$runtime_root/models/ggml-silero-v5.1.2.bin" \
+      "29940d98d42b91fbd05ce489f3ecf7c72f0a42f027e4875919a28fb4c04ea2cf"
+  else
+    touch "$runtime_root/models/ggml-large-v3-turbo.bin" "$runtime_root/models/ggml-silero-v5.1.2.bin"
+  fi
 fi
 
 echo "[4/6] Installing menu bar app"

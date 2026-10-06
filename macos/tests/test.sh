@@ -13,6 +13,7 @@ done
 /bin/bash -n "$project_root/scripts/bootstrap.sh"
 grep -q 'main/macos/scripts/bootstrap.sh' "$project_root/scripts/bootstrap.sh"
 /bin/bash -n "$macos_root/vendor/whisper-stream/whisper-stream"
+/bin/bash "$macos_root/tests/test_stream_api.sh"
 python3 -B "$macos_root/tests/test_review_skill.py"
 
 filter="$macos_root/runtime/filter-transcript.zsh"
@@ -38,20 +39,32 @@ codesign --verify --deep --strict "$macos_root/prebuilt/Listenote Daily.app"
 
 xcrun clang -fobjc-arc -framework Cocoa "$macos_root/tests/status-icon-test.m" -o "$temp_dir/status-icon-test"
 "$temp_dir/status-icon-test"
+xcrun clang -fobjc-arc -framework Cocoa "$macos_root/tests/config-save-test.m" -o "$temp_dir/config-save-test"
+"$temp_dir/config-save-test" "$temp_dir/config-save-root"
 
 fake_home="$temp_dir/home"
 mkdir -p "$fake_home"
 legacy_root="$fake_home/Library/Application Support/WhisperDaily"
 mkdir -p "$legacy_root/records/transcripts"
 printf 'legacy transcript\n' > "$legacy_root/records/transcripts/legacy.md"
-HOME="$fake_home" LISTENOTE_DAILY_TEST_MODE=1 /bin/zsh "$macos_root/scripts/install.sh" >/dev/null
+HOME="$fake_home" LISTENOTE_DAILY_TEST_MODE=1 LISTENOTE_DAILY_TEST_ARCH=arm64 /bin/zsh "$macos_root/scripts/install.sh" >/dev/null
 test -f "$fake_home/Library/Application Support/Listenote Daily/config/schedule.conf"
 test -f "$fake_home/Library/Application Support/Listenote Daily/skills/listenote-daily-review/SKILL.md"
-test -f "$fake_home/Library/Application Support/Listenote Daily/models/ggml-large-v3-turbo.bin"
+grep -q '^ASR_BACKEND=qwen$' "$fake_home/Library/Application Support/Listenote Daily/config/schedule.conf"
+test -f "$fake_home/Library/Application Support/Listenote Daily/qwen-cache/hub/models--moona3k--mlx-qwen3-asr-0.6b-8bit/refs/main"
+test -f "$fake_home/Library/Application Support/Listenote Daily/runtime/qwen-server.py"
+test ! -e "$fake_home/Library/Application Support/Listenote Daily/models/ggml-large-v3-turbo.bin"
 test -f "$fake_home/Library/Application Support/Listenote Daily/records/transcripts/legacy.md"
 test ! -e "$legacy_root"
 test -x "$fake_home/Applications/Listenote Daily.app/Contents/MacOS/ListenoteDaily"
 test -L "$fake_home/Listenote Daily Records"
+
+intel_home="$temp_dir/intel-home"
+mkdir -p "$intel_home"
+HOME="$intel_home" LISTENOTE_DAILY_TEST_MODE=1 LISTENOTE_DAILY_TEST_ARCH=x86_64 /bin/zsh "$macos_root/scripts/install.sh" >/dev/null
+grep -q '^ASR_BACKEND=whisper$' "$intel_home/Library/Application Support/Listenote Daily/config/schedule.conf"
+test -f "$intel_home/Library/Application Support/Listenote Daily/models/ggml-large-v3-turbo.bin"
+test ! -e "$intel_home/Library/Application Support/Listenote Daily/qwen-venv"
 
 day=$(date +%u)
 config="$fake_home/Library/Application Support/Listenote Daily/config/schedule.conf"

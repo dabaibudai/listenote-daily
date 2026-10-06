@@ -4,12 +4,12 @@
 
 ## 最终效果
 
-- 完全本地：使用 `whisper.cpp` 的 Large v3 Turbo 多语言模型，不调用云端 API。
+- Apple Silicon 默认使用本地 Qwen3-ASR-0.6B 8-bit（MLX）；Intel Mac 保留原 `whisper.cpp` Large v3 Turbo 路径。两种后端都不调用云端语音 API。
 - 中文固定为 `zh`，保存前使用 macOS 内置能力转成简体中文。
 - 每天一个 `YYYY-MM-DD.md`，每段保留本地起止时间，Codex 可直接检索。
 - 菜单栏只显示冥想小人和计时，不出现中文或“录音”字样。
 - 时间表由配置文件控制，不依赖 Codex、ChatGPT 或定时对话。
-- 支持 Intel 与 Apple Silicon Mac。
+- 已在一台 Apple Silicon Mac 上完成 Qwen 录音与转写测试；其他设备尚未验收。
 
 ## 一条命令安装
 
@@ -22,12 +22,12 @@
 安装器会：
 
 1. 缺少 Homebrew 时自动安装 Homebrew。
-2. 安装 `sox`、`jq`、`ripgrep` 和 `whisper.cpp`。
-3. 下载 Large v3 Turbo 模型（约 1.5GB）及 VAD 模型，并校验 SHA-256。
+2. Apple Silicon 安装 `sox`、`jq`、`ripgrep`、`ffmpeg`、`uv`；Intel 安装原 Whisper 依赖。
+3. Apple Silicon 建立独立 Python 环境，安装已测试的 Qwen 推理版本，并下载固定版本的 0.6B 模型（约 801 MB）；Intel 下载原 Large v3 Turbo 与 VAD 模型。
 4. 安装状态栏程序、后台任务与可编辑时间表。
 5. 安装独立的 `listenote-daily-review` skill；已有同名 skill 保留不覆盖。
 
-模型不会放进 GitHub。安装通常需要几分钟，主要取决于 1.4GB 模型的下载速度。
+模型不会放进 GitHub。Apple Silicon 安装约需 1 GB 磁盘空间用于模型与 Python 环境；耗时主要取决于下载速度。新安装默认 Qwen；**升级旧安装会保留已有配置**。
 
 ## 第一次测试
 
@@ -49,7 +49,7 @@ listenote-daily notes
 listenote-daily stop
 ```
 
-`start` 是手动覆盖；执行 `stop` 会立即停止。若保持运行，到达 `WINDOWS` 中任一时间段的结束时间时也会自动停止，避免手动录音整夜运行。
+`start` 是手动覆盖；执行 `stop` 会立即停止。若不手动停止，要等下一个 `WINDOWS` 结束时间才自动停止；**在窗口外启动可能跨夜运行**，测试结束请主动执行 `stop`。
 
 ## 配置时间表
 
@@ -59,6 +59,8 @@ listenote-daily stop
 ENABLED=1
 DAYS=1,2,3,4,5,6,7
 WINDOWS=09:00-12:00,13:30-18:00
+ASR_BACKEND=qwen
+QWEN_MODEL=moona3k/mlx-qwen3-asr-0.6b-8bit
 MODEL_SIZE=large-v3-turbo
 LANGUAGE=zh
 ```
@@ -72,8 +74,11 @@ listenote-daily config
 - `ENABLED=0`：关闭自动时间表，仅允许手动启动。
 - `DAYS=1,2,3,4,5`：仅周一至周五。
 - `WINDOWS`：可写一个或多个本地时间区间，用英文逗号分隔。
+- `ASR_BACKEND=qwen`：Apple Silicon 新安装默认值；`whisper` 是 Intel 默认值，也是可回退选项。Qwen 服务只监听 `127.0.0.1`，模型缺失时该次任务会停止并记录错误，不会偷偷切回另一后端。
 
-保存后最多 60 秒生效，不需要重启，也不需要 Codex。
+修改时间表最多约 60 秒生效；**切换模型后需要先停止当前录音再启动**，或等下一时段开始。无需 Codex 定时唤醒。
+
+旧版 Apple Silicon 若要改用 Qwen：先运行 `listenote-daily stop`，把配置中的 `ASR_BACKEND` 改为 `qwen`（缺少该行就新增），再重新运行上面的一键安装命令。安装器会保留原有记录和时间表、补齐 Qwen 环境；完成后用 `listenote-daily doctor` 检查。不要在录音运行时升级。若不想切换，保留原配置即可。
 
 ## 常用命令
 
@@ -94,7 +99,8 @@ listenote-daily doctor                    # 检查依赖、模型和进程
 ```text
 ~/Library/Application Support/Listenote Daily/
 ├── config/schedule.conf
-├── models/
+├── qwen-venv/ 与 qwen-cache/  # Apple Silicon Qwen 后端
+├── models/                    # 仅 Whisper 后端使用
 └── records/
     ├── transcripts/YYYY-MM-DD.md
     └── logs/
@@ -113,7 +119,7 @@ listenote-daily doctor                    # 检查依赖、模型和进程
 
 这是转录后的简体中文。
 
-<!-- start: 2026-08-23T09:15:02-0700 | end: 2026-08-23T09:15:28-0700 | duration: 26.0 | model: local:ggml-large-v3-turbo.bin -->
+<!-- start: 2026-08-23T09:15:02-0700 | end: 2026-08-23T09:15:28-0700 | duration: 26.0 | model: moona3k/mlx-qwen3-asr-0.6b-8bit -->
 ```
 
 ## 用 AI 复盘录音
@@ -144,7 +150,7 @@ python3 skills/listenote-daily-review/scripts/find_transcript.py --check --json
 - 使用 AI 复盘时，读取的文字会进入所用 AI 的会话处理；这与完全本地的录音转写不同。仓库只分发 skill，不包含个人转录、摘要或用户配置。
 - 每个片段转录完成后，临时 MP3 会删除；异常断电最多可能留下当前片段。
 - Git 仓库通过 `.gitignore` 排除模型、记录、日志和 PID 文件。
-- Large v3 Turbo 模型约 1.5GB；长期增长的主要是 Markdown 文本，不是音频。
+- Qwen 0.6B 模型约 801 MB，独立 Python 环境约 250 MB；长期增长的主要是 Markdown 文本，不是音频。Whisper 回退模型若已安装，会保留而不删除。
 
 ## 故障排查
 
@@ -160,6 +166,8 @@ listenote-daily status
 1. 在“系统设置 → 隐私与安全性 → 麦克风”允许终端、SoX/`rec` 的权限。
 2. 清晰说满 20–30 秒，随后等待一个处理周期。
 3. 查看 `~/Listenote Daily Records/logs/` 中当天的 runtime 日志。
+
+Qwen 启动失败时再查看 `qwen-server.log`；`doctor` 会检查所选后端的环境和模型。当前一台 16 GB Apple Silicon Mac 的测试中，Qwen 0.6B 的内存低于约 2 GB，但这不是所有设备或长时运行的硬保证。没有人工逐字稿时，也不能把与另一份机器转写的相似度称作准确率。
 
 如果状态栏未出现，或者点击了 `Hide Status`，可运行下面的命令重新显示：
 

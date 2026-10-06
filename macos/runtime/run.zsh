@@ -14,25 +14,56 @@ model_size="${MODEL_SIZE:-large-v3-turbo}"
 language="${LANGUAGE:-zh}"
 model_path="$root_dir/models/ggml-$model_size.bin"
 vad_model_path="$root_dir/models/ggml-silero-v5.1.2.bin"
+asr_backend="${ASR_BACKEND:-whisper}"
+qwen_server_pid=""
 
 mkdir -p "$record_dir" "$log_dir"
 print -r -- "$$" > "$pid_file"
 
 cleanup() {
   pkill -TERM -P $$ 2>/dev/null || true
+  if [ -n "$qwen_server_pid" ]; then
+    kill "$qwen_server_pid" 2>/dev/null || true
+    wait "$qwen_server_pid" 2>/dev/null || true
+  fi
   rm -f "$pid_file"
 }
 trap cleanup EXIT INT TERM HUP
 
-"$stream_bin" \
-  --backend local \
-  --language "$language" \
-  --model-path "$model_path" \
-  --vad \
-  --vad-model-path "$vad_model_path" \
-  --silence 1.5 \
-  --duration 30 \
-  --jsonl \
+if [ "$asr_backend" = "qwen" ]; then
+  qwen_python="${QWEN_PYTHON:-$root_dir/qwen-venv/bin/python}"
+  qwen_hf_home="${QWEN_HF_HOME:-$root_dir/qwen-cache}"
+  qwen_model="${QWEN_MODEL:-moona3k/mlx-qwen3-asr-0.6b-8bit}"
+  qwen_port="${QWEN_PORT:-18765}"
+  if [ ! -x "$qwen_python" ]; then
+    print -r -- "Qwen Python missing: $qwen_python" >> "$log_dir/runtime-$(date +%Y-%m-%d).log"
+    exit 1
+  fi
+  export HF_HOME="$qwen_hf_home" HF_HUB_OFFLINE=1 QWEN_MODEL="$qwen_model" QWEN_PORT="$qwen_port"
+  "$qwen_python" "$root_dir/runtime/qwen-server.py" >> "$log_dir/qwen-server.log" 2>&1 &
+  qwen_server_pid=$!
+  ready=0
+  for attempt in {1..90}; do
+    if curl -fsS --max-time 1 "http://127.0.0.1:$qwen_port/health" 2>/dev/null | jq -e --arg model "$qwen_model" '.status == "ok" and .model == $model' >/dev/null 2>&1; then
+      ready=1
+      break
+    fi
+    if ! kill -0 "$qwen_server_pid" 2>/dev/null; then break; fi
+    sleep 1
+  done
+  if [ "$ready" != "1" ]; then
+    print -r -- "Qwen server did not become ready; see qwen-server.log" >> "$log_dir/runtime-$(date +%Y-%m-%d).log"
+    exit 1
+  fi
+  stream_args=(--backend api --api-url "http://127.0.0.1:$qwen_port/v1/audio/transcriptions" --token listenote-local --model "$qwen_model" --language "$language")
+elif [ "$asr_backend" = "whisper" ]; then
+  stream_args=(--backend local --language "$language" --model-path "$model_path" --vad --vad-model-path "$vad_model_path")
+else
+  print -r -- "Unsupported ASR_BACKEND: $asr_backend" >> "$log_dir/runtime-$(date +%Y-%m-%d).log"
+  exit 1
+fi
+
+"$stream_bin" "${stream_args[@]}" --silence 1.5 --duration 30 --jsonl \
   2>> "$log_dir/runtime-$(date +%Y-%m-%d).log" |
 while IFS= read -r line; do
   if ! print -r -- "$line" | jq -e . >/dev/null 2>&1; then

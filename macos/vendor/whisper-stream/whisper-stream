@@ -1188,12 +1188,14 @@ function convert_audio_to_text() {
   # picked the input, so always honour their choice — silently dropping a
   # short clip there would be a confusing regression.
   #
-  # `|| true` keeps the assignment from poisoning $? when soxi rejects the
-  # input (e.g. invalid audio). "Unknown duration" is treated as "do not skip".
+  # Silence can leave a non-empty MP3 containing only headers. soxi cannot
+  # read it; sending that file to an ASR server yields a decoder error.
   if [ -z "$AUDIO_FILE" ]; then
     local duration
-    duration=$(soxi -D "$output_file" 2>/dev/null) || true
-    if [ -n "$duration" ] && awk -v d="$duration" -v m="$MIN_AUDIO_DURATION" 'BEGIN { exit !(d+0 > 0 && d+0 < m+0) }'; then
+    duration=$(soxi -D "$output_file" 2>/dev/null) || duration=""
+    if [[ ! "$duration" =~ ^[0-9]+([.][0-9]+)?$ ]] ||
+       awk -v d="$duration" -v m="$MIN_AUDIO_DURATION" 'BEGIN { exit !(d+0 < m+0) }'; then
+      echo "Skipping empty or too-short captured audio" >&2
       rm -f "$output_file"
       return 0
     fi
@@ -1464,22 +1466,56 @@ function convert_audio_to_text() {
 
   else
     # Plain JSON response
-    transcription=$(echo "$response" | jq -r '.text // "Error"' 2>/dev/null || true)
+    transcription=$(echo "$response" | jq -er '.text | select(type == "string")' 2>/dev/null)
+    if [ $? -ne 0 ]; then
+      echo "Warning: API returned no valid transcription text; skipping utterance" >&2
+      if [ -z "$AUDIO_FILE" ]; then
+        rm -f "$output_file"
+      fi
+      return 1
+    fi
+    if [ -z "$transcription" ]; then
+      # A valid empty result means silence, not the literal word "Error".
+      if [ -z "$AUDIO_FILE" ]; then
+        rm -f "$output_file"
+      fi
+      return 0
+    fi
     display_text="$transcription"
   fi
 
   # Primary transcription output.
   # In JSONL mode, emit one JSON object per utterance using jq so that the
-  # text is properly escaped. Duration is null because no API model in the
-  # supported set returns audio duration.
+  # text is properly escaped. Timing comes from the local capture, not the
+  # API response, so it also works with OpenAI-compatible local servers.
   if [ "$JSONL_MODE" = true ]; then
+    local duration_json="null"
+    local audio_duration
+    audio_duration=$(soxi -D "$output_file" 2>/dev/null) || audio_duration=""
+    if [[ "$audio_duration" =~ ^[0-9]+([.][0-9]+)?$ ]]; then
+      duration_json="$audio_duration"
+    fi
+    local emitted_at
+    emitted_at=$(date -u +%Y-%m-%dT%H:%M:%SZ)
+    local start_at="${CURRENT_UTTERANCE_START_UTC:-$emitted_at}"
+    local end_at="${CURRENT_UTTERANCE_END_UTC:-$emitted_at}"
+    local start_local="${CURRENT_UTTERANCE_START_LOCAL:-$(date +%Y-%m-%dT%H:%M:%S%z)}"
+    local end_local="${CURRENT_UTTERANCE_END_LOCAL:-$start_local}"
+    local local_date="${CURRENT_UTTERANCE_LOCAL_DATE:-$(date +%Y-%m-%d)}"
     jq -nc \
       --argjson version "$JSONL_SCHEMA_VERSION" \
-      --arg ts "$(date -u +%Y-%m-%dT%H:%M:%SZ)" \
+      --arg ts "$emitted_at" \
+      --arg start_at "$start_at" \
+      --arg end_at "$end_at" \
+      --arg start_local "$start_local" \
+      --arg end_local "$end_local" \
+      --arg local_date "$local_date" \
       --arg model "$MODEL" \
-      --argjson duration null \
+      --argjson duration "$duration_json" \
       --arg text "$display_text" \
-      '{version:$version, ts:$ts, model:$model, duration:$duration, text:$text}'
+      '{version:$version, ts:$ts, start_at:$start_at, end_at:$end_at,
+        start_local:$start_local, end_local:$end_local, local_date:$local_date,
+        model:$model, duration:$duration, text:$text}'
   else
     echo "$display_text"
   fi

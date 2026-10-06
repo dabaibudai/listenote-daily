@@ -1,12 +1,13 @@
 # Listenote Daily
 
-本地中文持续转录工具。它按时间表自动工作，用本地 Whisper 将语音写入每日 Markdown；音频只作临时分片，处理后删除。
+本地中文持续转录工具。它按时间表自动工作，把语音写入每日 Markdown；音频只作临时分片，处理后删除。macOS Apple Silicon 版默认使用本地 Qwen3-ASR-0.6B 8-bit，Windows 版保持现状。
 
 ## 选择平台
 
 | 平台 | 状态 | 安装与说明 |
 |---|---|---|
-| macOS | 已完成本机安装与录音测试 | [`macos/README.md`](macos/README.md) |
+| macOS Apple Silicon | Qwen 0.6B 已完成本机安装与录音测试；其他 Mac 待验收 | [`macos/README.md`](macos/README.md) |
+| macOS Intel | 保留原 Whisper 安装路径，未参与本轮 Qwen 验收 | [`macos/README.md`](macos/README.md) |
 | Windows x64 | `v0.2.0 Preview` | [`windows/README.md`](windows/README.md) · [下载安装包](https://github.com/dabaibudai/listenote-daily/releases/tag/windows-v0.2.0) |
 | 录音复盘 Skill | Mac/Windows 共用 | [`skills/listenote-daily-review/`](skills/listenote-daily-review/) |
 
@@ -44,7 +45,7 @@ listenote-daily/
 ## 共同原则
 
 - 完全本地转录，不调用云端语音 API。
-- 默认使用 Large v3 Turbo 中文模型。
+- macOS Apple Silicon 默认 Qwen 0.6B；macOS Intel 与 Windows 保持原 Whisper 路径。
 - 每天一个 `YYYY-MM-DD.md`，每段保留本地起止时间。
 - 临时音频不会长期保存，主要磁盘占用来自模型。
 - 时间表由本机配置文件控制，不依赖 Codex 或定时对话。

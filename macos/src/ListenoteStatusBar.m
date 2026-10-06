@@ -223,7 +223,9 @@
     return values;
 }
 
-- (NSString *)modelTitle:(NSString *)model {
+- (NSString *)modelTitle:(NSDictionary<NSString *, NSString *> *)configuration {
+    if ([configuration[@"ASR_BACKEND"] isEqualToString:@"qwen"]) return @"Qwen 0.6B · MLX";
+    NSString *model = configuration[@"MODEL_SIZE"];
     if ([model isEqualToString:@"large-v3-turbo"]) return @"Large v3 Turbo · CPU";
     if ([model isEqualToString:@"large-v3"]) return @"Large v3 · CPU";
     if ([model isEqualToString:@"medium"]) return @"Medium · CPU";
@@ -265,7 +267,7 @@
 
     self.recordingItem.enabled = YES;
     NSDictionary *configuration = [self configuration];
-    self.modelItem.title = [self modelTitle:configuration[@"MODEL_SIZE"]];
+    self.modelItem.title = [self modelTitle:configuration];
     self.scheduleItem.title = [self scheduleTitle:configuration];
     self.countItem.title = [NSString stringWithFormat:@"今日片段：%@", summary[@"count"]];
     NSDictionary *latest = summary[@"latest"];
@@ -432,14 +434,23 @@
         [windowValues addObject:[NSString stringWithFormat:@"%@-%@", window[@"start"], window[@"end"]]];
     }
     NSDictionary *existing = [self configuration];
+    NSMutableString *backendLines = [NSMutableString stringWithFormat:
+        @"# Local ASR backend\nASR_BACKEND=%@\nQWEN_MODEL=%@\n",
+        existing[@"ASR_BACKEND"] ?: @"whisper",
+        existing[@"QWEN_MODEL"] ?: @"moona3k/mlx-qwen3-asr-0.6b-8bit"];
+    for (NSString *key in @[@"QWEN_PYTHON", @"QWEN_HF_HOME"]) {
+        NSString *value = existing[key];
+        if (value.length > 0) [backendLines appendFormat:@"%@=%@\n", key, value];
+    }
     NSString *content = [NSString stringWithFormat:
         @"# 1 = use the schedule; 0 = manual mode only\nENABLED=%@\n\n"
          "# ISO weekday numbers: 1=Monday ... 7=Sunday\nDAYS=%@\n\n"
          "# Local-time windows, comma separated. End time is not included.\nWINDOWS=%@\n\n"
-         "# Local multilingual Whisper model and fixed Chinese recognition\nMODEL_SIZE=%@\nLANGUAGE=%@\n",
+         "%@\n# Local multilingual Whisper model and fixed Chinese recognition\nMODEL_SIZE=%@\nLANGUAGE=%@\n",
         self.scheduleEnabledButton.state == NSControlStateValueOn ? @"1" : @"0",
         [days componentsJoinedByString:@","],
         [windowValues componentsJoinedByString:@","],
+        backendLines,
         existing[@"MODEL_SIZE"] ?: @"large-v3-turbo",
         existing[@"LANGUAGE"] ?: @"zh"];
     NSError *error = nil;

@@ -28,6 +28,10 @@ start_job() {
     "LISTENOTE_DAILY_ROOT=$root_dir" \
     "MODEL_SIZE=${MODEL_SIZE:-large-v3-turbo}" \
     "LANGUAGE=${LANGUAGE:-zh}" \
+    "ASR_BACKEND=${ASR_BACKEND:-whisper}" \
+    "QWEN_PYTHON=${QWEN_PYTHON:-}" \
+    "QWEN_HF_HOME=${QWEN_HF_HOME:-}" \
+    "QWEN_MODEL=${QWEN_MODEL:-moona3k/mlx-qwen3-asr-0.6b-8bit}" \
     /bin/zsh "$root_dir/runtime/run.zsh"
   launchctl start "$label"
 }

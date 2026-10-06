@@ -1,0 +1,8 @@
+# Versions used in the tested Apple Silicon Qwen 0.6B setup.
+mlx-qwen3-asr[serve]==0.4.4
+mlx==0.31.2
+huggingface-hub==2.1.1
+fastapi==0.142.2
+uvicorn==0.54.0
+python-multipart==0.0.32
+numpy==2.5.3
